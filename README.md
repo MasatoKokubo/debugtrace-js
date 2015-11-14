@@ -75,9 +75,9 @@ Log bodys are automatically indent.
 		}
 		debugTrace.printValue("Point", Point)
 
-		var point1 = new Point(10, 20)
-		var point2 = new Point(30, 40)
-		var point3 = point1.add(point2).mul(point1.sub(point2))
+		const point1 = new Point(10, 20)
+		const point2 = new Point(30, 40)
+		const point3 = point1.add(point2).mul(point1.sub(point2))
 		debugTrace.printValue("point1", point1)
 		debugTrace.printValue("point2", point2)
 		debugTrace.printValue("point3", point3)
