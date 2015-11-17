@@ -1,5 +1,5 @@
 /**
-DebugTrace.js 0.1.0
+DebugTrace.js 0.1.1
 (C) 2015 Masato Kokubop
 */
 var resource = require('./DebugTrace_resources')
@@ -62,16 +62,19 @@ function getCallerInfo() {
 	var myModuleName = "DebugTrace\.js$"
 
 	var callerInfos = new Error("").stack.split("\n")
-		.filter(function(line) {return line.indexOf(" at ") >= 0})
+		.filter(function(line) {return line.indexOf("at ") >= 0})
 		.map   (function(line) {
-			var parts = line.substring(line.indexOf(" at ") + 4).split(" ")
-			var parts2 = parts[1].slice(1, -1).split(":")
+			var parts = line.substring(line.indexOf("at ") + 3).split(" ")
+			if (parts.length == 1)
+				parts.unshift("")
+			if (parts[1].indexOf("(") == 0)
+				parts[1] = parts[1].slice(1, -1)
 
+			var parts2 = parts[1].split(":")
 			var methodName = parts[0]
 			var pathName   = parts2.length <= 3 ? parts2[0] : parts2[0] + ":" + parts2[1]
 			var lineNo     = parts2[parts2.length - 2]
 			var columnNo   = parts2[parts2.length - 1]
-
 			return {
 				methodName : methodName,
 				pathName   : pathName,
@@ -89,7 +92,7 @@ function basicPrint(message, withCallerInfo) {
 	var logString = resource.formatDate(new Date()) + " "
 		+ (withCallerInfo ? resource.formatMessage(message, getCallerInfo()) : message)
 
-	console.log(logString);
+	console.log(logString)
 	return getIndentString()
 }
 
@@ -138,7 +141,7 @@ function appendArray(message, value) {
 	}
 
 	var logString = logString + "]"
-	return logString;
+	return logString
 }
 
 // Returns a string representation of the object value.
@@ -166,7 +169,7 @@ function appendObject(message, value) {
 
 	logString = logString + "}"
 
-	return logString;
+	return logString
 }
 
 // Returns a string representation of the function value.
@@ -180,7 +183,7 @@ function appendFunction(message, value) {
 		logString = logString + lines[index]
 	}
 
-	return logString;
+	return logString
 }
 
 // Exports
@@ -216,6 +219,4 @@ module.exports = {
 		var message = getIndentString() + name + resource.varNameValueSeparator
 		basicPrint(append(message, value), true)
 	},
-
-
 }
