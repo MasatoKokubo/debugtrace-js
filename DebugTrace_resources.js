@@ -14,12 +14,12 @@ module.exports = {
 
 	// Function of format enter
 	formatEnter           : function(info) {
-		return info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
+		return info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
 	},
 
 	// Function of format leave
 	formatLeave           : function(info) {
-		return info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
+		return info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
 	},
 
 	// Function of format messgae
