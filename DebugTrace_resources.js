@@ -1,25 +1,25 @@
 /**
 resource.js
-(C) 2015 Masato Kokubop
+(c) 2015 Masato Kokubop
 */
 module.exports = {
 	// String of method call indent
-	indentString          : "|  ",
+	indentString          : "| ",
 
 	// String of data indent
-	dataIndentString      : "   ",
+	dataIndentString      : "  ",
 
 	// Separator between the variable name and value
 	varNameValueSeparator : " = ",
 
 	// Function of format enter
 	formatEnter           : function(info) {
-		return "Enter " + info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
+		return info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
 	},
 
 	// Function of format leave
 	formatLeave           : function(info) {
-		return "Leave " + info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
+		return info.pathName + " " + info.methodName + " (" + info.lineNo + ")"
 	},
 
 	// Function of format messgae

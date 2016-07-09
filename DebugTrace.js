@@ -1,6 +1,6 @@
 /**
-DebugTrace.js 0.1.1
-(C) 2015 Masato Kokubop
+DebugTrace.js 1.0.0
+(c) 2015 Masato Kokubop
 */
 var resource = require('./DebugTrace_resources')
 
@@ -191,7 +191,7 @@ module.exports = {
 	/** Call this method at entrance of your methods. */
 	enter : function() {
 		if (beforeNestLevel >  nestLevel)
-			basicPrint("", false) // Line break
+			basicPrint(getIndentString(), false) // Line break
 		basicPrint(getIndentString() + resource.formatEnter(getCallerInfo()), false)
 		upNest()
 	},
