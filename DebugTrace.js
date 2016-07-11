@@ -189,15 +189,15 @@ function appendFunction(message, value) {
 // Exports
 module.exports = {
 	/** Call this method at entrance of your methods. */
-	enter : function() {
-		if (beforeNestLevel >  nestLevel)
+	enter: function() {
+		if (beforeNestLevel > nestLevel)
 			basicPrint(getIndentString(), false) // Line break
 		basicPrint(getIndentString() + resource.formatEnter(getCallerInfo()), false)
 		upNest()
 	},
 
 	/** Call this method at exit of your methods. */
-	leave : function() {
+	leave: function() {
 		downNest()
 		basicPrint(getIndentString() + resource.formatLeave(getCallerInfo()), false)
 	},
@@ -206,7 +206,7 @@ module.exports = {
 	Outputs the message to the log.
 	@param message a message
 	*/
-	print : function(message) {
+	print: function(message) {
 		basicPrint(getIndentString() + message, true)
 	},
 
@@ -215,7 +215,7 @@ module.exports = {
 	@param name the name
 	@param value the value
 	*/
-	printValue : function(name, value) {
+	printValue: function(name, value) {
 		var message = getIndentString() + name + resource.varNameValueSeparator
 		basicPrint(append(message, value), true)
 	},

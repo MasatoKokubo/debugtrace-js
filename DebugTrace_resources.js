@@ -4,31 +4,31 @@ resource.js
 */
 module.exports = {
 	// String of method call indent
-	indentString          : "| ",
+	indentString: "| ",
 
 	// String of data indent
-	dataIndentString      : "  ",
+	dataIndentString: "  ",
 
 	// Separator between the variable name and value
-	varNameValueSeparator : " = ",
+	varNameValueSeparator: " = ",
 
 	// Function of format enter
-	formatEnter           : function(info) {
-		return info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
+	formatEnter: function(info) {
+		return "Enter " + info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
 	},
 
 	// Function of format leave
-	formatLeave           : function(info) {
-		return info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
+	formatLeave: function(info) {
+		return "Leave " + info.pathName + " (" + info.methodName + ":" + info.lineNo + ")"
 	},
 
 	// Function of format messgae
-	formatMessage         : function(message, info) {
+	formatMessage: function(message, info) {
 		return message + " (" + info.methodName + ":" + info.lineNo + ")"
 	},
 
 	// Function of format date
-	formatDate            : function(date) {
+	formatDate: function(date) {
 		return        date.getFullYear() + "-"
 			+ ("0"  + (date.getMonth  () + 1 )).slice(-2) + "-"
 			+ ("0"  +  date.getDate   ()      ).slice(-2) + " "
