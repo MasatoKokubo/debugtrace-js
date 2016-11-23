@@ -1,12 +1,12 @@
 debugtrace-js
 =========
 
-debugtrace-js ia a library to output logs for debugging.
+debugtrace-js は、デバッグ用のログを出力するためのライブラリです。
 
-The following is an example of JavaScript used debugtrace-js and the log of when it has been executed.
-The log bodys are automatically indent.
+以下は、debugtrace-js を使用した JavaScript の例とそれを実行した際のログです。
+ログは自動的にインデントされます。
 
-#### Example used debugtrace-js
+#### debugtrace-js の使用例
 
 ```javascript:example1.js
 "use strict"
@@ -100,7 +100,7 @@ function func3() {
 func1()
 ```
 
-#### The log of when the example has been executed
+#### 例を実行した際のログ
 
 ```log:debugtrace.log
 2016-11-23 18:57:57.337 Enter Z:\Develop\JavaScript\DebugTrace.js\test\example1.js (func1:6)
@@ -163,10 +163,10 @@ func1()
 2016-11-23 18:57:57.406 Leave Z:\Develop\JavaScript\DebugTrace.js\test\example1.js (func1:9)
 ```
 
-#### License
+#### ライセンス
 
-[The MIT License (MIT)](LICENSE.txt)
+[MIT ライセンス (MIT)](LICENSE.txt)
 
 *&copy; 2015 Masato Kokubo*
 
-[Japanese](README_ja.md)
+[English](README.md)
