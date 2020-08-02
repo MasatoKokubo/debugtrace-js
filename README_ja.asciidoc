@@ -1,0 +1,272 @@
+= debugtrace-js
+
+link:README.asciidoc[[English]]
+
+*debugtrace-js* は、JavaScriptプログラムのデバッグ時にトレースログを出力するライブラリで、Node.js 10以降で利用できます。 +
+関数の開始と終了箇所に `debugtrace.enter()` および `debugtrace.leave()` を埋め込む事で、開発中のJavaScriptプログラムの実行状況をログに出力する事ができます。
+
+=== 1. 特徴
+
+* 呼び出し元の関数名、ソースファイルおよび行番号を自動的に出力。
+* 関数やオブジェクトのネストで、ログを自動的にインデント。
+* 実行時に依存するライブラリがない。
+
+=== 2. 使用方法
+
+デバッグ対象および関連する関数に対して以下を行います。
+
+. 関数の先頭に `debugtrace.enter()` を挿入する。
+. 関数の終了(または `return` 文の直前)に `debugtrace.leave()` を挿入する。
+. 必要に応じて、引数、ローカル変数、戻り値をログに出力する `debugtrace.print('foo', foo)` を挿入する。
+
+以下は、debugtraceの関数を使用したJavaScriptの例とそれを実行した際のログです。
+
+[source,javascript]
+.ReadmeExample.js
+----
+// ReadmeExample.js
+const debugtrace = require('debugtrace') // for Debugging
+
+class Contact {
+    constructor(id, firstName, lastName, birthday) {
+        this.id = id
+        this.firstName = firstName
+        this.lastName = lastName
+        this.birthday = birthday
+    }
+}
+
+function func2() {
+    debugtrace.enter() // for Debugging
+    let contacts = [
+        new Contact(1, "Akane" , "Apple", new Date(Date.UTC(1991, 2, 3))),
+        new Contact(2, "Yukari", "Apple", new Date(Date.UTC(1992, 3, 4)))
+    ]
+    debugtrace.print("contacts", contacts) // for Debugging
+    debugtrace.leave() // for Debugging
+}
+
+function func1() {
+    debugtrace.enter() // for Debugging
+    func2()
+    debugtrace.leave() // for Debugging
+}
+
+func1()
+----
+
+.debugtrace.log
+----
+2020-07-26 14:55:32.448+09:00 debugtrace 2.0.0
+2020-07-26 14:55:32.463+09:00
+2020-07-26 14:55:32.464+09:00 Enter func1 (ReadmeExample.js:24)
+2020-07-26 14:55:32.465+09:00 | Enter func2 (ReadmeExample.js:14)
+2020-07-26 14:55:32.466+09:00 | | contacts = [
+2020-07-26 14:55:32.467+09:00 | |   (Contact){
+2020-07-26 14:55:32.467+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
+2020-07-26 14:55:32.467+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
+2020-07-26 14:55:32.467+09:00 | |   },
+2020-07-26 14:55:32.467+09:00 | |   (Contact){
+2020-07-26 14:55:32.467+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
+2020-07-26 14:55:32.468+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
+2020-07-26 14:55:32.468+09:00 | |   }
+2020-07-26 14:55:32.468+09:00 | | ] (ReadmeExample.js:19)
+2020-07-26 14:55:32.469+09:00 | Leave func2 (ReadmeExample.js:20) duration: 00:00:00.003
+2020-07-26 14:55:32.469+09:00 Leave func1 (ReadmeExample.js:26) duration: 00:00:00.005
+----
+
+=== 3. 関数一覧
+
+このライブラリには以下の関数があります。すべて戻り値なしです。
+
+[options="header"]
+.関数一覧
+|===
+|関数名|引 数|説 明
+|`enter`
+|なし
+|関数の開始をログに出力する
+
+|`leave`
+|なし
+|関数の終了をログに出力する
+
+|`printMessage`
+|`message`: メッセージ
+|メッセージをログに出力する
+
+|`print`
+|`name`: 値の名前 +
+`value`: 値
+|`<値の名前> = <値>` +
+の形式でログに出力する
+
+|===
+
+=== 4. *debugtrace* のプロパティ
+
+debugtrace には以下のプロパティを指定できます。
+
+[options="header", cols="2,8"]
+.debugtrace.properties
+|===
+|プロパティ名|説 明
+|`formatEnter`
+|関数に入る際に出力するログのフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatEnter = (name, fileName, lineNumber) =&#x3e;` +
+&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Enter ${name} (${fileName}:${lineNumber})&#96;` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `name`: 関数名 +
+&#xa0;&#xa0; `fileName`: ファイル名 +
+&#xa0;&#xa0; `lineNumber`: 行番号
+
+|`formatLeave`
+|関数から出る際に出力するログのフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatLeave = (name, fileName, lineNumber, duration) =&#x3e;` +
+&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Leave ${name} (${fileName}:${lineNumber}) duration: ${duration}&#96;`  [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `name`: 関数名 +
+&#xa0;&#xa0; `fileName`: ファイル名 +
+&#xa0;&#xa0; `lineNumber`: 行番号 +
+&#xa0;&#xa0; `duration`: 対応する `enter` 関数を呼び出してからの時間
+
+|`indentString`
+|コードのインデント文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.indentString = '&#x7c; '` [.small .blue]#*[初期設定値]*#
+
+|`dataIndentString`
+|データのインデント文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.dataIndentString = '  '` [.small .blue]#*[初期設定値]*#
+
+|`limitString`
+|制限を超えた場合に出力する文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.limitString = '\...'` [.small .blue]#*[初期設定値]*#
+
+|`cyclicReferenceString`
+|循環参照している場合に出力する文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.cyclicReferenceString = '&#x2A;&#x2A;&#x2A; cyclic reference &#x2A;&#x2A;&#x2A;'` [.small .blue]#*[初期設定値]*# +
+
+|`varNameValueSeparator`
+|変数名と値のセパレータ文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.varNameValueSeparator = ' = '` [.small .blue]#*[初期設定値]*# +
+
+|`keyValueSeparator`
+|マップのキーと値のセパレータ文字列 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.keyValueSeparator = ': '` [.small .blue]#*[初期設定値]*# +
+
+|`formatPrintSuffix`
+|`print` 関数で付加される文字列のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatPrintSuffix = (name, fileName, lineNumber) =&#x3e;` +
+&#xa0;&#xa0;&#xa0;&#xa0; `&#96; (${fileName}:${lineNumber})&#96;` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `name`: 関数名 [.small .maroon]#_(初期設定では未使用)_# +
+&#xa0;&#xa0; `fileName`: ファイル名 +
+&#xa0;&#xa0; `lineNumber`: 行番号
+
+|`formatLength`
+|配列および文字列長のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatLength = length =&#x3e; &#96;length:${length}&#96;` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `length`: 要素数または文字列長
+
+|`formatSize`
+|`Map` および `Set` 要素数のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatSize = size =&#x3e; &#96;size:${size}&#96;` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `size`: 要素数
+
+|`minimumOutputLengthAndSize`
+|配列、`Map` および `Set` の要素数を出力する最小値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.minimumOutputLengthAndSize = 5` [.small .blue]#*[初期設定値]*#
+
+|`minimumOutputStringLength`
+|文字列長を出力する最小値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.minimumOutputStringLength = 5` [.small .blue]#*[初期設定値]*#
+
+|`formatDate`
+|`Date` のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatDate = date =&#x3e; {` +
+&#xa0;&#xa0;&#xa0;&#xa0; `let timezoneOffset = date.getTimezoneOffset()` +
+&#xa0;&#xa0;&#xa0;&#xa0; `const offsetSign = timezoneOffset < 0 ? &#x27;+&#x27; : &#x27;-&#x27;` +
+&#xa0;&#xa0;&#xa0;&#xa0; `if (timezoneOffset < 0)` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `timezoneOffset = -timezoneOffset` +
+&#xa0;&#xa0;&#xa0;&#xa0; `const str =&#xa0;date.getFullYear() + &#x27;-&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+ (date.getMonth&#xa0;() + 1 )).slice(-2) + &#x27;-&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;date.getDate&#xa0; ()&#xa0;&#xa0;&#xa0;).slice(-2) + &#x27; &#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;date.getHours&#xa0;()&#xa0;&#xa0;&#xa0;).slice(-2) + &#x27;:&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;date.getMinutes()&#xa0;&#xa0;&#xa0;).slice(-2) + &#x27;:&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;date.getSeconds()&#xa0;&#xa0;&#xa0;).slice(-2) + &#x27;.&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;00&#x27; +&#xa0;date.getMilliseconds() ).slice(-3) + offsetSign +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;Math.floor(timezoneOffset / 60)).slice(-2) + &#x27;:&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;timezoneOffset % 60).slice(-2)` +
+&#xa0;&#xa0;&#xa0;&#xa0; `return str` +
+&#xa0;&#xa0; `}` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `date`: 日時
+
+|`formatTime`
+|`formatLeave` の `duration` のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.formatTime = date =&#x3e;` +
+&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCHours  ()     ).slice(-2) + &#x27;:&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCMinutes()     ).slice(-2) + &#x27;:&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCSeconds()     ).slice(-2) + &#x27;.&#x27; +` +
+&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;00&#x27; +  date.getUTCMilliseconds()).slice(-3)` [.small .blue]#*[初期設定値]*# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `date`: 時刻差
+
+|`formatLogDate`
+|ログの日時のフォーマット関数 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `formatDate`  [.small]#_参照_# +
+[.small]#*パラメータ:*# +
+&#xa0;&#xa0; `date`: 日時
+
+|`maximumDataOutputWidth`
+|データの出力幅の最大値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.maximumDataOutputWidth = 70` [.small .blue]#*[初期設定値]*#
+
+|`collectionLimit`
+|配列、`Map` および `Set` の要素の出力数の制限値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.collectionLimit = 512` [.small .blue]#*[初期設定値]*#
+
+|`stringLimit`
+|文字列の出力文字数の制限値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.stringLimit = 8192` [.small .blue]#*[初期設定値]*#
+
+|`reflectionNestLimit`
+|リフレクションのネスト数の制限値 +
+[.small]#*設定例:*# +
+&#xa0;&#xa0; `debugtrace.reflectionNestLimit = 4` [.small .blue]#*[初期設定値]*#
+
+|===
+
+=== 5. ライセンス
+
+link:LICENSE.txt[MIT ライセンス(MIT)]
+
+_(C) 2015 Masato Kokubo_
+
+=== 6. リリースノート
+
+==== debugtrace-js 2.0.0 [.small .gray]#- 2020-08-02#
+
+* Node.js 10以降に対応
+* データ出力の改行処理を改善

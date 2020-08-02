@@ -1,90 +1,84 @@
 /**
- * @file
- * @version 1.1.0
+ * @file debugtrace.js
  * @copyright 2015 Masato Kokubo
  * @license MIT
  */
+"use strict"
+
+const LogBuffer = require('./logbuffer')
 
 /** @private */
-var nestLevel       = 0 // Nest Level
-var beforeNestLevel = 0 // Before Nest Level
-var dataNestLevel   = 0 // Data Nest Level
+let nestLevel       = 0 // Nest Level
+let previousNestLevel = 0 // Previous Nest Level
 
 // Array of indent strings
-var indentStrings = []
+const indentStrings = []
 
 // Array of data indent strings
-var dataIndentStrings = []
+const dataIndentStrings = []
+
+// Array of times at enter
+const enterTimes = []
+
+// version
+const version = '2.0.0'
+
+// Reflected object array
+let reflectedObjects = []
+
+let reflectionNest = 0
+
+let initialized = false
 
 /**
  * Returns a string corresponding to the current indent.
  * @private
- * @return {string} a string of indent
+ * @param {number} dataNestLevel the data nest level
+ * @return {string} a indent string
  */
-function getIndentString() {
-	// make indentStrings if necessary
-	if (indentStrings.length == 0 || indentStrings[1] != debugtrace.indentString) {
-		indentStrings.splice(0, indentStrings.length)
-		indentStrings.push("")
-		for (var index = 1; index < 32; ++index)
-			indentStrings.push(indentStrings[indentStrings.length - 1] + debugtrace.indentString)
-	}
+function getIndentString(dataNestLevel = 0) {
+    // make indentStrings if necessary
+    if (indentStrings.length < 2 || indentStrings[1] != debugtrace.indentString) {
+        indentStrings.splice(0, indentStrings.length) // initializes the array
+        indentStrings.push('')
+        for (let index = 1; index < 32; ++index)
+            indentStrings.push(indentStrings[indentStrings.length - 1] + debugtrace.indentString)
+    }
 
-	// make dataIndentStrings if necessary
-	if (dataIndentStrings.length == 1 || dataIndentStrings[1] != debugtrace.dataIndentString) {
-		dataIndentStrings.splice(0, dataIndentStrings.length)
-		dataIndentStrings.push("")
-		for (var index = 1; index < 32; ++index)
-			dataIndentStrings.push(dataIndentStrings[dataIndentStrings.length - 1] + debugtrace.dataIndentString)
-	}
+    // make dataIndentStrings if necessary
+    if (dataIndentStrings.length < 2 || dataIndentStrings[1] != debugtrace.dataIndentString) {
+        dataIndentStrings.splice(0, dataIndentStrings.length) // initializes the array
+        dataIndentStrings.push('')
+        for (let index = 1; index < 32; ++index)
+            dataIndentStrings.push(dataIndentStrings[dataIndentStrings.length - 1] + debugtrace.dataIndentString)
+    }
 
-	return indentStrings[
-			nestLevel < 0
-				? 0
-			: nestLevel >= indentStrings.length
-				? indentStrings.length - 1
-				: nestLevel
-		] + dataIndentStrings[
-			dataNestLevel < 0
-				? 0
-			: dataNestLevel >= dataIndentStrings.length
-				? dataIndentStrings.length - 1
-				: dataNestLevel
-		]
+        return indentStrings[
+            nestLevel < 0 ? 0 :
+            nestLevel >= indentStrings.length ? indentStrings.length - 1
+                : nestLevel]
+        + dataIndentStrings[
+            dataNestLevel < 0 ? 0 :
+            dataNestLevel >= dataIndentStrings.length ? dataIndentStrings.length - 1
+                : dataNestLevel]
 }
 
 /**
  * Increases the nest level.
  * @private
  */
-function incNest() {
-	beforeNestLevel = nestLevel
-	++nestLevel
+function upNest() {
+    previousNestLevel = nestLevel
+    ++nestLevel
 }
 
 /**
  * Decreases the nesting level.
  * @private
  */
-function decNest() {
-	 beforeNestLevel = nestLevel
-	--nestLevel
-}
-
-/**
- * Increases the data nest level.
- * @private
- */
-function incDataNest() {
-	++dataNestLevel
-}
-
-/**
- * Decreases the data nest level.
- * @private
- */
-function decDataNest() {
-	--dataNestLevel
+function downNest() {
+    previousNestLevel = nestLevel
+    --nestLevel
 }
 
 /**
@@ -93,282 +87,658 @@ function decDataNest() {
  * @return a caller stack trace element
  */
 function getCallerInfo() {
-	var myModuleName = "debugtrace\.js$"
+    const myModuleName = 'debugtrace\.js$'
 
-	var callerInfos = new Error("").stack.split("\n")
-		.filter(function(line) {return line.indexOf("at ") >= 0})
-		.map   (function(line) {
-			var parts = line.substring(line.indexOf("at ") + 3).split(" ")
-			if (parts.length == 1)
-				parts.unshift("")
-			if (parts[1].indexOf("(") == 0)
-				parts[1] = parts[1].slice(1, -1)
+    const callerInfos = new Error('').stack.split('\n')
+        .filter(line => line.indexOf('at ') >= 0)
+        .map(line => {
+            const parts = line.substring(line.indexOf('at ') + 3).split(' ')
+            if (parts.length == 1)
+                parts.unshift('')
+            if (parts[1].indexOf('(') == 0)
+                parts[1] = parts[1].slice(1, -1)
 
-			var parts2 = parts[1].split(":")
-			var funcName = parts[0]
-			var pathName = parts2.length <= 3 ? parts2[0] : parts2[0] + ":" + parts2[1]
-			var lineNo   = parts2[parts2.length - 2]
-			var columnNo = parts2[parts2.length - 1]
-			return {
-				funcName : funcName,
-				pathName : pathName,
-				lineNo   : lineNo,
-				columnNo : columnNo
-			}
-		})
-		.filter(function(element) {return !element.pathName.match(myModuleName)})
+            const parts2 = parts[1].split(':')
+            const functionName = parts[0]
+            let fileName = parts2.length <= 3 ? parts2[0] : parts2[0] + ':' + parts2[1]
+            let delimIndex = fileName.lastIndexOf('/')
+            if (delimIndex >= 0)
+                fileName = fileName.substring(delimIndex + 1)
+            else {
+                let delimIndex = fileName.lastIndexOf('\\')
+                if (delimIndex >= 0)
+                    fileName = fileName.substring(delimIndex + 1)
+            }
+            const lineNumber = parts2[parts2.length - 2]
+            const columnNumber = parts2[parts2.length - 1]
+            return {
+                functionName : functionName,
+                fileName: fileName,
+                lineNumber: lineNumber,
+                columnNumber: columnNumber
+            }
+        })
+        .filter(element => !element.fileName.match(myModuleName))
 
-	return callerInfos[0]
+    return callerInfos[0]
+}
+
+/**
+ * Returns the type name of the value.
+ * @private
+ * @param {string} message the message to output
+ * @param {boolean} withCallerInfo - true if outputs the caller infomation, false otherwise
+ */
+function getTypeName(value) {
+    let typeName = value.constructor.name
+    const length = value.length || -1
+    const size = value.size || -1
+    
+    if (typeName == 'String') {
+        typeName = ''
+        if (length >= debugtrace.minimumOutputStringLength)
+            typeName = debugtrace.formatLength(length)
+    } else {
+        if (typeName == 'Array')
+            typeName = ''
+        if (length >= debugtrace.minimumOutputLengthAndSize) {
+            if (typeName.length > 0)
+                typeName += ' '
+            typeName += debugtrace.formatLength(length)
+        } else if (size >= debugtrace.minimumOutputLengthAndSize) {
+            if (typeName.length > 0)
+                typeName += ' '
+            typeName += debugtrace.formatSize(size)
+        }
+    }
+
+    if (typeName.length > 0)
+        typeName = '(' + typeName + ')'
+    return typeName
 }
 
 /**
  * Outputs the log.
  * @private
- * @param {string} message - the message to output
- * @param {Boolean} withCallerInfo - true if outputs the caller infomation, false otherwise
+ * @param {string} message the message to output
  */
-function basicPrint(message, withCallerInfo) {
-	var logString = debugtrace.formatDate(new Date()) + " "
-		+ (withCallerInfo ? debugtrace.formatMessage(message, getCallerInfo()) : message)
+function printSub(message) {
+    if (!initialized) {
+        initialized = true
+        printSub('debugtrace ' + version)
+        printSub('')
+    }
 
-	console.log(logString)
-	return getIndentString()
+    reflectedObjects = []
+    const logString = debugtrace.formatLogDate(new Date()) + ' ' + message
+    console.log(logString)
 }
 
 /**
  * Returns a string representation of the message and the value.
  * @private
- * @param {string} message - the message about the value
- * @param {*} value - the value to output
- * @return {string} a string representation of the message and the value.
+ * @param {*} value the value to output
+ * @return {LogBuffer} a LogBuffer
  */
-function append(message, value) {
-	if (value == null) {
-		logString = message + value
-	} else {
-		var type = Object.prototype.toString.call(value).slice(8, -1)
-		if      (type == "Array"   ) logString = appendArray(message, value)
-		else if (type == "Boolean" ) logString = message + value
-		else if (type == "Number"  ) logString = message + value
-		else if (type == "String"  ) logString = message + "\"" + value + "\""
-		else if (type == "Date"    ) logString = message + debugtrace.formatDate(value)
-		else if (type == "Error"   ) logString = message + value
-		else if (type == "Function") logString = appendFunction(message, value)
-		else if (type == "RegExp"  ) logString = message + value
-		else                         logString = appendObject(message, value)
-	}
+function toString(value) {
+    let buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-	return logString
+    if (value === undefined)
+        buff.append('undefined')
+    else if (value === null)
+        buff.append('null')
+    else {
+        const type = Object.prototype.toString.call(value).slice(8, -1)
+        switch (type) {
+        case 'Boolean' :
+        case 'Symbol'  :
+        case 'Number'  :
+        case 'BigInt'  :
+        case 'Error'   :
+        case 'RegExp'  : buff.append(value); break
+        case 'Date'    : buff.append(debugtrace.formatDate(value)); break
+        case 'String'  : buff = toStringString(value); break
+        case 'Function': buff = toStringFunction(value); break
+        default:
+            if (reflectedObjects.findIndex(element => element === value) >= 0)
+                buff.noBreakAppend(debugtrace.cyclicReferenceString)
+            else {
+                reflectedObjects.push(value)
+                if (type.endsWith('Array'))
+                    buff = toStringArray(value)
+                else {
+                    switch (type) {
+                    case 'Map': buff = toStringMap(value); break
+                    case 'Set': buff = toStringArray(value); break
+                    default:
+                        if (reflectionNest >= debugtrace.reflectionNestLimit) {
+                            buff.noBreakAppend(debugtrace.limitString)
+                        } else {
+                            ++reflectionNest
+                            buff = toStringObject(value)
+                            --reflectionNest
+                        }
+                        break
+                    }
+                }
+                reflectedObjects.pop()
+            }
+            break
+        }
+    }
+
+    return buff
 }
 
 /**
- * Returns a string representation of the message and the array value.
+ * Returns a string representation of the array as a LogBuffer.
  * @private
- * @param {string} message - the message about the value
- * @param {Array} value - the value to output
- * @return {string} a string representation of the message and value.
+ * @param {Array} value the value to output
+ * @return {LogBuffer} a LogBuffer
  */
-function appendArray(message, value) {
-	var logString = message + "["
-	var upped = false
+function toStringArray(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-	for (var index = 0; index < value.length; ++index) {
-		logString = append(logString, value[index])
-		if (index < value.length - 1)
-			logString = logString + ", "
+    buff.noBreakAppend(getTypeName(value))
+    buff.noBreakAppend('[')
 
-		if (logString.length > debugtrace.columnLimit) {
-			if (!upped) {
-				incDataNest()
-				upped = true
-			}
-			logString = basicPrint(logString, false)
-		}
-	}
+    const bodyBuff = toStringArrayBody(value)
 
-	if (upped) {
-		decDataNest()
-		logString = basicPrint(logString, false)
-	}
+    const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth;
 
-	var logString = logString + "]"
-	return logString
+    if (isMultiLines) {
+        buff.lineFeed();
+        buff.upNest();
+    }
+
+    buff.appendBuffer(bodyBuff);
+
+    if (isMultiLines) {
+        buff.lineFeed();
+        buff.downNest();
+    }
+
+    buff.noBreakAppend(']');
+
+    return buff;
+}
+
+function toStringArrayBody(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+
+    let index = 0
+    let wasMultiLines = false;
+    for (let element of value) {
+        if (index > 0)
+            buff.noBreakAppend(', ')
+
+        if (index >= debugtrace.collectionLimit) {
+            buff.append(debugtrace.limitString)
+            break
+        }
+
+        const elementBuff = toString(element)
+        if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
+            buff.lineFeed()
+        buff.appendBuffer(elementBuff)
+
+        ++index
+        wasMultiLines = elementBuff.isMultiLines
+    }
+
+    return buff
 }
 
 /**
- * Returns a string representation of the message and the object value.
+ * Returns a string representation of the string as a LogBuffer.
  * @private
- * @param {string} message - the message about the value
- * @param {{object} value - the value to output
- * @return {string} a string representation of the message and value.
+ * @param {string} value the value to output
+ * @return {LogBuffer} a LogBuffer
  */
-function appendObject(message, value) {
-	var count = 0
-	for (var property in value)
-		++count
-
-	var logString = message + "{"
-	incDataNest()
-	logString = basicPrint(logString, false)
-
-	var index = 0 
-	for (var property in value) {
-		logString = logString + property + ":"
-		logString = append(logString, value[property])
-		if (index < count - 1)
-			logString = logString + ", "
-
-		if (index == count - 1)
-			decDataNest()
-		logString = basicPrint(logString, false)
-		++index
-	}
-
-	logString = logString + "}"
-
-	return logString
+function toStringString(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+    buff.noBreakAppend(getTypeName(value))
+    buff.noBreakAppend('\'')
+    let index = 0
+    for (let ch of value) {
+        if (index >= debugtrace.stringLimit) {
+            buff.noBreakAppend(debugtrace.limitString)
+            break
+        }
+        switch (ch) {
+        case '\0': buff.noBreakAppend('\\0' ); break; // 00 NUL
+        case '\b': buff.noBreakAppend('\\b' ); break; // 08 BS
+        case '\t': buff.noBreakAppend('\\t' ); break; // 09 HT
+        case '\n': buff.noBreakAppend('\\n' ); break; // 0A LF
+        case '\v': buff.noBreakAppend('\\v' ); break; // 0B VT
+        case '\f': buff.noBreakAppend('\\f' ); break; // 0C FF
+        case '\r': buff.noBreakAppend('\\r' ); break; // 0D CR
+        case '\'': buff.noBreakAppend('\\\'' ); break; // '
+        case '\\': buff.noBreakAppend('\\\\'); break; // \
+        default:
+            if (ch < ' ' || ch == '\u007F')
+                buff.noBreakAppend('\\x')
+                    .noBreakAppend(('0' + ch.charCodeAt(0).toString(16)).slice(-2).toUpperCase());
+            else
+                buff.noBreakAppend(ch);
+            break;
+        }
+        ++index
+    }
+    buff.noBreakAppend('\'')
+    return buff
 }
 
 /**
- * Returns a string representation of the message and the function value.
+ * Returns a string representation of the function as a LogBuffer.
  * @private
- * @param {string} message - the message about the value
- * @param {Function} value - the value to output
- * @return {string} a string representation of the message and value.
+ * @param {Function} value the value to output
+ * @return {LogBuffer} a LogBuffer
  */
-function appendFunction(message, value) {
-	var lines = ("" + value).split("\t").join("    ").split("\n")
-	var logString = message
+function toStringFunction(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-	for (var index = 0; index < lines.length; ++index) {
-		if (index >= 1)
-			logString = basicPrint(logString, false)
-		logString = logString + lines[index]
-	}
+    const lines = ('' + value).split('\t').join('    ').split('\n')
+    lines.forEach(line => {
+        buff.noBreakAppend(line)
+        buff.lineFeed()
+    })
 
-	return logString
+    return buff
 }
 
-var debugtrace = {}
+/**
+ * Returns a string representation of the object as a LogBuffer.
+ * @private
+ * @param {object} value the value to output
+ * @return {LogBuffer} a LogBuffer
+ */
+function toStringObject(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+
+    buff.append(getTypeName(value))
+
+    const bodyBuff = toStringObjectBody(value)
+
+    const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth
+    buff.noBreakAppend('{')
+
+    if (isMultiLines) {
+        buff.lineFeed()
+        buff.upNest()
+    }
+
+    buff.appendBuffer(bodyBuff)
+
+    if (isMultiLines) {
+        if (buff.length > 0)
+            buff.lineFeed()
+        buff.downNest()
+    }
+
+    buff.noBreakAppend('}')
+
+    return buff
+}
+
+function toStringObjectBody(value) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+
+    let index = 0 
+    let wasMultiLines = false;
+    for (const propertyName in value) {
+        if (index > 0)
+            buff.noBreakAppend(', ')
+
+        const memberBuff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+        memberBuff.append(propertyName).noBreakAppend(debugtrace.keyValueSeparator)
+        memberBuff.appendBuffer(toString(value[propertyName]))
+
+        if (index > 0 && (wasMultiLines || memberBuff.isMultiLines))
+            buff.lineFeed()
+        buff.appendBuffer(memberBuff)
+
+        wasMultiLines = memberBuff.isMultiLines
+        ++index
+    }
+
+    return buff
+}
+
+/**
+ * Returns a string representation of the array as a LogBuffer.
+ * @private
+ * @param {Map} map the map to output
+ * @return {LogBuffer} a LogBuffer
+ */
+function toStringMap(map) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+
+    buff.noBreakAppend(getTypeName(map))
+    buff.noBreakAppend('{')
+
+    const bodyBuff = toStringMapBody(map)
+
+    const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth;
+
+    if (isMultiLines) {
+        buff.lineFeed();
+        buff.upNest();
+    }
+
+    buff.appendBuffer(bodyBuff);
+
+    if (isMultiLines) {
+        buff.lineFeed();
+        buff.downNest();
+    }
+
+    buff.noBreakAppend('}');
+
+    return buff;
+}
+
+function toStringMapBody(map) {
+    const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+
+    let index = 0
+    let wasMultiLines = false;
+    for (let key of map.keys()) {
+        if (index > 0)
+            buff.noBreakAppend(', ')
+
+        if (index >= debugtrace.collectionLimit) {
+            buff.append(debugtrace.limitString)
+            break
+        }
+
+        const elementBuff = toString(key)
+        elementBuff.noBreakAppend(debugtrace.keyValueSeparator)
+        elementBuff.appendBuffer(toString(map.get(key)))
+        if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
+            buff.lineFeed()
+        buff.appendBuffer(elementBuff)
+
+        ++index
+        wasMultiLines = elementBuff.isMultiLines
+    }
+
+    return buff
+}
+
+let debugtrace = {}
 
 /**
  * @namespace debugtrace
  */
 module.exports = (function() {
-	/**
-	 * String of method indent.
-	 * @type {string}
-	 */
-	debugtrace.indentString = "| "
+    /**
+     * Formatting function of log output when entering methods.
+     * @type {function}
+     * @param {string} name the function or method name
+     * @param {string} fileName the file name
+     * @param {string} lineNumber the line number
+     * @return {string} a formatted string
+     */
+    debugtrace.formatEnter = (name, fileName, lineNumber) =>
+        `Enter ${name} (${fileName}:${lineNumber})`
 
-	/**
-	 * String of data indent.
-	 * @type {string}
-	 */
-	debugtrace.dataIndentString = "  "
+    /**
+     * Formatting function of log output when leaving methods.
+     * @type {function}
+     * @param {string} name the function or method name
+     * @param {string} fileName the file name
+     * @param {string} lineNumber the line number
+     * @param {string} duration the duration since invoking the corresponding `enter` method
+     * @return {string} a formatted string
+     */
+    debugtrace.formatLeave = (name, fileName, lineNumber, duration) =>
+        `Leave ${name} (${fileName}:${lineNumber}) duration: ${duration}`
 
-	/**
-	 * Separator between the variable name and value.
-	 * @type {string}
-	 */
-	debugtrace.varNameValueSeparator = " = "
+    /**
+     * Indentation string for code.
+     * @type {string}
+     */
+    debugtrace.indentString = '| '
 
-	/**
-	 * Formats the log when entering.
-	 * @param {object} info - the caller information
-	 * @property {string} info.pathName - the path name of the caller function
-	 * @property {string} info.funcName - the function name of the caller function
-	 * @property {number} info.lineNo   - the line number of the caller function
-	 * @property {number} info.columnNo - the column number of the caller function
-	 * @return {string} the entering string
-	 */
-	debugtrace.formatEnter = function(info) {
-		return "Enter " + info.pathName + " (" + info.funcName + ":" + info.lineNo + ")"
-	}
+    /**
+     * Indentation string for data.
+     * @type {string}
+     */
+    debugtrace.dataIndentString = '  '
 
-	/**
-	 * Formats the log when leaving.
-	 * @param {object} info - the caller information
-	 * @property {string} info.pathName - the path name of the caller function
-	 * @property {string} info.funcName - the function name of the caller function
-	 * @property {number} info.lineNo   - the line number of the caller function
-	 * @property {number} info.columnNo - the column number of the caller function
-	 * @return {string} the leaving string
-	 */
-	debugtrace.formatLeave = function(info) {
-		return "Leave " + info.pathName + " (" + info.funcName + ":" + info.lineNo + ")"
-	}
+    /**
+     * String to represent that it has exceeded the limit.
+     * @type {string}
+     */
+    debugtrace.limitString = '...'
 
-	/**
-	 * Formats the messgae.
-	 * @param {string} message - the messgae
-	 * @param {object} info - the caller information
-	 * @property {string} info.pathName - the path name of the caller function
-	 * @property {string} info.funcName - the function name of the caller function
-	 * @property {number} info.lineNo   - the line number of the caller function
-	 * @property {number} info.columnNo - the column number of the caller function
-	 * @return {string} the formatted message
-	 */
-	debugtrace.formatMessage = function(message, info) {
-		return message + " (" + info.funcName + ":" + info.lineNo + ")"
-	}
+    /**
+     * String to be output instead of not outputting value.
+     * @type {string}
+     */
+    debugtrace.nonOutputString = '***' // Dose not use
 
-	/**
-	 * Formats the date.
-	 * @param {Date} date - the date to output
-	 * @return {string} the formatted date string
-	 */
-	debugtrace.formatDate = function(date) {
-		return        date.getFullYear() + "-"
-			+ ("0"  + (date.getMonth  () + 1 )).slice(-2) + "-"
-			+ ("0"  +  date.getDate   ()      ).slice(-2) + " "
-			+ ("0"  +  date.getHours  ()      ).slice(-2) + ":"
-			+ ("0"  +  date.getMinutes()      ).slice(-2) + ":"
-			+ ("0"  +  date.getSeconds()      ).slice(-2) + "."
-			+ ("00" +  date.getMilliseconds() ).slice(-3)
-	}
+    /**
+     * String to represent that the cyclic reference occurs.
+     * @type {string}
+     */
+    debugtrace.cyclicReferenceString = '*** cyclic reference ***'
 
-	/**
-	 * Log line length limit.
-	 * @type {number}
-	 */
-	debugtrace.columnLimit = 80
+    /**
+     * Separator string between the variable name and value.
+     * @type {string}
+     */
+    debugtrace.varNameValueSeparator = ' = '
 
-	/**
-	 * Outputs a log when entering function.
-	 */
-	debugtrace.enter = function() {
-		if (beforeNestLevel > nestLevel)
-			basicPrint(getIndentString(), false) // Line break
-		basicPrint(getIndentString() + this.formatEnter(getCallerInfo()), false)
-		incNest()
-	}
+    /**
+     * Separator string between the key and value of Map object.
+     * @type {string}
+     */
+    debugtrace.keyValueSeparator = ': '
 
-	/**
-	 * Outputs a log when leavign function.
-	 */
-	debugtrace.leave = function() {
-		decNest()
-		basicPrint(getIndentString() + this.formatLeave(getCallerInfo()), false)
-	}
+    /**
+     * Formatting function of print method suffix.
+     * @type {function}
+     * @param {string} name the function or method name
+     * @param {string} fileName the file name
+     * @param {string} lineNumber the line number
+     * @return {string} a formatted string
+     */
+    debugtrace.formatPrintSuffix = (name, fileName, lineNumber) => ` (${fileName}:${lineNumber})`
 
-	/**
-	 * Outputs the message to the log.
-	 * @param {string} message - the message
-	 */
-	debugtrace.print = function(message) {
-		basicPrint(getIndentString() + message, true)
-	}
+    /**
+     * Formatting function of the length of array and string.
+     * @type {function}
+     * @param {number} length the length
+     */
+    debugtrace.formatLength = length => `length:${length}`
 
-	/**
-	 * Outputs the name and the value to the log.
-	 * @param {string} name - the name of the value
-	 * @param {*} value - the value to output
-	 */
-	debugtrace.printValue = function(name, value) {
-		var message = getIndentString() + name + this.varNameValueSeparator
-		basicPrint(append(message, value), true)
-	}
+    /**
+     * Formatting function of the size of Map and Set.
+     * @type {function}
+     * @param {string} size the size
+     */
+    debugtrace.formatSize = size => ` size:${size}`
 
-	return debugtrace
+    /**
+     * Minimum value to output the number of elements of Array, Map, and Set.
+     * @type {number}
+     */
+    debugtrace.minimumOutputLengthAndSize = 5
+
+    /**
+     * Minimum value to output the number of elements of string.
+     * @type {number}
+     */
+    debugtrace.minimumOutputStringLength = 5
+
+    /**
+     * Formatting function of Date.
+     * @type {function}
+     * @param {Date} date the date
+     * @return {string} a formatted string
+     */
+    debugtrace.formatDate = date => {
+        let timezoneOffset = date.getTimezoneOffset()
+        const offsetSign = timezoneOffset < 0 ? '+' : '-'
+        if (timezoneOffset < 0)
+            timezoneOffset = -timezoneOffset
+        const str =  date.getFullYear() + '-' +
+            ('0'  + (date.getMonth  () + 1 )).slice(-2) + '-' +
+            ('0'  +  date.getDate   ()      ).slice(-2) + ' ' +
+            ('0'  +  date.getHours  ()      ).slice(-2) + ':' +
+            ('0'  +  date.getMinutes()      ).slice(-2) + ':' +
+            ('0'  +  date.getSeconds()      ).slice(-2) + '.' +
+            ('00' +  date.getMilliseconds() ).slice(-3) + offsetSign +
+            ('0'  +  Math.floor(timezoneOffset / 60)).slice(-2) + ':' +
+            ('0'  +  timezoneOffset % 60).slice(-2)
+        return str
+    }
+
+    /**
+     * Formatting function of Date.
+     * @type {function}
+     * @param {Date} date the date
+     * @return {string} a formatted string
+     */
+    debugtrace.formatTime = date =>
+        ('0'  +  date.getUTCHours  ()     ).slice(-2) + ':' +
+        ('0'  +  date.getUTCMinutes()     ).slice(-2) + ':' +
+        ('0'  +  date.getUTCSeconds()     ).slice(-2) + '.' +
+        ('00' +  date.getUTCMilliseconds()).slice(-3)
+
+    /**
+     * Formatting function of Date for logs.
+     * @type {function}
+     * @param {Date} date the date
+     * @return {string} a formatted string
+     */
+    debugtrace.formatLogDate = date => {
+        let timezoneOffset = date.getTimezoneOffset()
+        const offsetSign = timezoneOffset < 0 ? '+' : '-'
+        if (timezoneOffset < 0)
+            timezoneOffset = -timezoneOffset
+        const str =  date.getFullYear() + '-' +
+            ('0'  + (date.getMonth  () + 1 )).slice(-2) + '-' +
+            ('0'  +  date.getDate   ()      ).slice(-2) + ' ' +
+            ('0'  +  date.getHours  ()      ).slice(-2) + ':' +
+            ('0'  +  date.getMinutes()      ).slice(-2) + ':' +
+            ('0'  +  date.getSeconds()      ).slice(-2) + '.' +
+            ('00' +  date.getMilliseconds() ).slice(-3) + offsetSign +
+            ('0'  +  Math.floor(timezoneOffset / 60)).slice(-2) + ':' +
+            ('0'  +  timezoneOffset % 60).slice(-2)
+        return str
+    }
+
+    /**
+     * Maximum output width of data.
+     * @type {number}
+     */
+    debugtrace.maximumDataOutputWidth = 70
+
+    /**
+     * Limit value of elements for array, Map and Set to output.
+     * @type {number}
+     */
+    debugtrace.collectionLimit = 512
+
+    /**
+     * Limit value of characters for string to output.
+     * @type {number}
+     */
+    debugtrace.stringLimit = 8192
+
+    /**
+     * Limit value reflection nests.
+     * @type {number}
+     */
+    debugtrace.reflectionNestLimit = 4
+
+    /**
+     * Outputs a log when entering function.
+     */
+    debugtrace.enter = () => {
+        if (previousNestLevel > nestLevel)
+            printSub(getIndentString()) // Empty Line
+        const callerInfo = getCallerInfo()
+        debugtrace.lastLog = getIndentString() +
+            debugtrace.formatEnter(
+                callerInfo.functionName,
+                callerInfo.fileName,
+                callerInfo.lineNumber
+            )
+        printSub(debugtrace.lastLog)
+        upNest()
+        enterTimes.push(Date.now())
+    }
+
+    /**
+     * Outputs a log when leavign function.
+     */
+    debugtrace.leave = () => {
+        const now = Date.now()
+        const duration = now - (enterTimes.length > 0 ? enterTimes.pop() : now)
+        downNest()
+        const callerInfo = getCallerInfo()
+        debugtrace.lastLog = getIndentString() +
+            debugtrace.formatLeave(
+                callerInfo.functionName,
+                callerInfo.fileName,
+                callerInfo.lineNumber,
+                debugtrace.formatTime(new Date(duration))
+            )
+        printSub(debugtrace.lastLog)
+    }
+
+    debugtrace.lastLog = ''
+
+    /**
+     * Outputs the message to the log.
+     * @param {string} message the message
+     */
+    debugtrace.printMessage = (message) => {
+        const callerInfo = getCallerInfo()
+        const printSuffix = debugtrace.formatPrintSuffix(
+            callerInfo.functionName,
+            callerInfo.fileName,
+            callerInfo.lineNumber
+        )
+
+        debugtrace.lastLog = getIndentString() + message + printSuffix
+        printSub(debugtrace.lastLog)
+    }
+
+        /**
+     * Outputs the name and the value to the log.
+     * @param {string} name the name of the value
+     * @param {*} value the value to output
+     */
+    debugtrace.print = (name, value) => {
+        const callerInfo = getCallerInfo()
+        const printSuffix = debugtrace.formatPrintSuffix(
+            callerInfo.functionName,
+            callerInfo.fileName,
+            callerInfo.lineNumber
+        )
+
+        const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
+        buff.append(name)
+            .noBreakAppend(debugtrace.varNameValueSeparator)
+            .appendBuffer(toString(value))
+            .noBreakAppend(printSuffix)
+        let index = 0
+        const lines = buff.lines
+        debugtrace.lastLog = ''
+        for (const line of lines) {
+            const outputLine = getIndentString(line[0]) + line[1]
+            if (debugtrace.lastLog != '')
+                debugtrace.lastLog += '\n'
+            debugtrace.lastLog += outputLine
+            printSub(outputLine)
+            ++index
+        }
+    }
+
+    return debugtrace
 }())
