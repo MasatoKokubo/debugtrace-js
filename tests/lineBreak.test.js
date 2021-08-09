@@ -46,7 +46,7 @@ test('line break of array', () => {
     expect(debugtrace.lastLog).toContain('  phoneNumber:')
     expect(debugtrace.lastLog).toContain('},\n|   (Contact){')
     expect(debugtrace.lastLog).toContain('},\n|   null, null')
-});
+})
 
 test('line break of Object', () => {
     // setup:
@@ -68,7 +68,7 @@ test('line break of Object', () => {
     expect(debugtrace.lastLog).toContain('  phoneNumber:')
     expect(debugtrace.lastLog).toContain('},\n|   contact2: (Contact){')
     expect(debugtrace.lastLog).toContain('},\n|   contact3: null, contact4: null')
-});
+})
 
 test('line break of Map', () => {
     // setup:
@@ -89,4 +89,42 @@ test('line break of Map', () => {
     expect(debugtrace.lastLog).toContain('  phoneNumber:')
     expect(debugtrace.lastLog).toContain('},\n|   2: (Contact){')
     expect(debugtrace.lastLog).toContain('},\n|   3: null, 4: null')
-});
+})
+
+/** @since 2.1.0 */
+test('no line break: name = value', () => {
+    // setup
+    const foo = '000000000011111111112222222222333333333344444444445555555555'
+
+    // when:
+    debugtrace.print('foo', foo)
+
+    // then:
+    expect(debugtrace.lastLog).toContain('foo = (length:60)\'0000000000')
+})
+
+/** @since 2.1.0 */
+test('no line break: Object: key: value', () => {
+    // setup
+    const foo = new Object()
+    foo.bar = '000000000011111111112222222222333333333344444444445555555555'
+
+    // when:
+    debugtrace.print('foo', foo)
+
+    // then:
+    expect(debugtrace.lastLog).toContain('bar: (length:60)\'0000000000')
+})
+
+/** @since 2.1.0 */
+test('no line break: Map: key: value', () => {
+    // setup
+    const foo = new Map()
+    foo.set(1, '000000000011111111112222222222333333333344444444445555555555')
+
+    // when:
+    debugtrace.print('foo', foo)
+
+    // then:
+    expect(debugtrace.lastLog).toContain('1: (length:60)\'0000000000')
+})

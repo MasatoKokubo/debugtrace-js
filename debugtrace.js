@@ -21,7 +21,7 @@ const dataIndentStrings = []
 const enterTimes = []
 
 // version
-const version = '2.0.0'
+const version = '2.1.0'
 
 // Reflected object array
 let reflectedObjects = []
@@ -171,7 +171,10 @@ function printSub(message) {
 
     reflectedObjects = []
     const logString = debugtrace.formatLogDate(new Date()) + ' ' + message
-    console.log(logString)
+// 2.1.0
+//  console.log(logString)
+    debugtrace.basicPrint(logString)
+////
 }
 
 /**
@@ -251,7 +254,10 @@ function toStringArray(value) {
         buff.upNest();
     }
 
-    buff.appendBuffer(bodyBuff);
+// 2.1.0
+//  buff.appendBuffer(bodyBuff);
+    buff.appendBuffer(null, bodyBuff);
+////
 
     if (isMultiLines) {
         buff.lineFeed();
@@ -280,7 +286,10 @@ function toStringArrayBody(value) {
         const elementBuff = toString(element)
         if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
             buff.lineFeed()
-        buff.appendBuffer(elementBuff)
+    // 2.1.0
+    //  buff.appendBuffer(elementBuff)
+        buff.appendBuffer(null, elementBuff)
+    ////
 
         ++index
         wasMultiLines = elementBuff.isMultiLines
@@ -339,10 +348,15 @@ function toStringFunction(value) {
     const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
     const lines = ('' + value).split('\t').join('    ').split('\n')
-    lines.forEach(line => {
-        buff.noBreakAppend(line)
-        buff.lineFeed()
-    })
+// 2.1.0
+//  lines.forEach(line => {
+//      buff.noBreakAppend(line)
+//      buff.lineFeed()
+//  })
+    buff.noBreakAppend(lines[0])
+    if (lines.length >= 2)
+        buff.noBreakAppend(debugtrace.limitString)
+////
 
     return buff
 }
@@ -368,7 +382,10 @@ function toStringObject(value) {
         buff.upNest()
     }
 
-    buff.appendBuffer(bodyBuff)
+// 2.1.0
+//  buff.appendBuffer(bodyBuff);
+    buff.appendBuffer(null, bodyBuff);
+////
 
     if (isMultiLines) {
         if (buff.length > 0)
@@ -391,12 +408,19 @@ function toStringObjectBody(value) {
             buff.noBreakAppend(', ')
 
         const memberBuff = new LogBuffer(debugtrace.maximumDataOutputWidth)
-        memberBuff.append(propertyName).noBreakAppend(debugtrace.keyValueSeparator)
-        memberBuff.appendBuffer(toString(value[propertyName]))
+    // 2.1.0
+    //  memberBuff.append(propertyName).noBreakAppend(debugtrace.keyValueSeparator)
+    //  memberBuff.appendBuffer(toString(value[propertyName]))
+        memberBuff.append(propertyName)
+        memberBuff.appendBuffer(debugtrace.keyValueSeparator, toString(value[propertyName]))
+    ////
 
         if (index > 0 && (wasMultiLines || memberBuff.isMultiLines))
             buff.lineFeed()
-        buff.appendBuffer(memberBuff)
+    // 2.1.0
+    //  buff.appendBuffer(memberBuff)
+        buff.appendBuffer(null, memberBuff)
+    ////
 
         wasMultiLines = memberBuff.isMultiLines
         ++index
@@ -426,7 +450,10 @@ function toStringMap(map) {
         buff.upNest();
     }
 
-    buff.appendBuffer(bodyBuff);
+// 2.1.0
+//  buff.appendBuffer(bodyBuff);
+    buff.appendBuffer(null, bodyBuff);
+////
 
     if (isMultiLines) {
         buff.lineFeed();
@@ -453,11 +480,17 @@ function toStringMapBody(map) {
         }
 
         const elementBuff = toString(key)
-        elementBuff.noBreakAppend(debugtrace.keyValueSeparator)
-        elementBuff.appendBuffer(toString(map.get(key)))
+    // 2.1.0
+    //  elementBuff.noBreakAppend(debugtrace.keyValueSeparator)
+    //  elementBuff.appendBuffer(toString(map.get(key)))
+        elementBuff.appendBuffer(debugtrace.keyValueSeparator, toString(map.get(key)))
+    ////
         if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
             buff.lineFeed()
-        buff.appendBuffer(elementBuff)
+    // 2.1.0
+    //  buff.appendBuffer(elementBuff)
+        buff.appendBuffer(null, elementBuff)
+    ////
 
         ++index
         wasMultiLines = elementBuff.isMultiLines
@@ -559,7 +592,7 @@ module.exports = (function() {
      * @type {function}
      * @param {string} size the size
      */
-    debugtrace.formatSize = size => ` size:${size}`
+    debugtrace.formatSize = size => `size:${size}`
 
     /**
      * Minimum value to output the number of elements of Array, Map, and Set.
@@ -597,7 +630,7 @@ module.exports = (function() {
     }
 
     /**
-     * Formatting function of Date.
+     *The format function for duration of formatLeave.
      * @type {function}
      * @param {Date} date the date
      * @return {string} a formatted string
@@ -609,7 +642,7 @@ module.exports = (function() {
         ('00' +  date.getUTCMilliseconds()).slice(-3)
 
     /**
-     * Formatting function of Date for logs.
+     * The format function for the log date and time.
      * @type {function}
      * @param {Date} date the date
      * @return {string} a formatted string
@@ -632,7 +665,7 @@ module.exports = (function() {
     }
 
     /**
-     * Maximum output width of data.
+     * The minimum value to output the length of string.
      * @type {number}
      */
     debugtrace.maximumDataOutputWidth = 70
@@ -650,10 +683,17 @@ module.exports = (function() {
     debugtrace.stringLimit = 8192
 
     /**
-     * Limit value reflection nests.
+     * The limit value for reflection nesting.
      * @type {number}
      */
     debugtrace.reflectionNestLimit = 4
+
+    /**
+     * Definition of basic print function.
+     * @type {function}
+     * @since 2.1.0
+     */
+    debugtrace.basicPrint = console.log
 
     /**
      * Outputs a log when entering function.
@@ -709,7 +749,7 @@ module.exports = (function() {
         printSub(debugtrace.lastLog)
     }
 
-        /**
+    /**
      * Outputs the name and the value to the log.
      * @param {string} name the name of the value
      * @param {*} value the value to output
@@ -724,8 +764,11 @@ module.exports = (function() {
 
         const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
         buff.append(name)
-            .noBreakAppend(debugtrace.varNameValueSeparator)
-            .appendBuffer(toString(value))
+        // 2.1.0
+        //  .noBreakAppend(debugtrace.varNameValueSeparator)
+        //  .appendBuffer(toString(value))
+            .appendBuffer(debugtrace.varNameValueSeparator, toString(value))
+        ////
             .noBreakAppend(printSuffix)
         let index = 0
         const lines = buff.lines

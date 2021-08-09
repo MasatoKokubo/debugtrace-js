@@ -60,7 +60,7 @@ module.exports = class LogBuffer {
      * @return {LogBuffer} this object
      */
     append(value, nestLevel = 0, noBreak = false) {
-        const str = '' + value.toString()
+        const str = value.toString()
         if (!noBreak && this.length > 0 && this.length + str.length > this._maximumDataOutputWidth)
             this.lineFeed()
         this._appendNestLevel = nestLevel
@@ -82,15 +82,25 @@ module.exports = class LogBuffer {
     /**
      * Appends lines of another LogBuffer.
      *
+     * @param {string} separator the separator string to append if not null
      * @param {LogBuffer} buff another LogBuffer
+     * @param {boolean} noBreak if true, does not break even if the maximum width is exceeded
      * @return {LogBuffer} this object
      */
-    appendBuffer(buff) {
+// 2.1.0
+//  appendBuffer(buff) {
+    appendBuffer(separator, buff) {
+        if (separator != null)
+            this.append(separator, 0, true)
+////
         let index = 0
         for (const line of buff.lines) {
             if (index > 0)
                 this.lineFeed()
-            this.append(line[1], line[0])
+        // 2.1.0
+        //  this.append(line[1], line[0])
+            this.append(line[1], line[0], index == 0 && separator != null)
+        ////
             ++index
         }
         return this

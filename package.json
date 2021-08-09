@@ -1,7 +1,7 @@
 {
   "name": "debugtrace-js",
-  "version": "2.0.0",
-  "description": "Outputs logs for debugging.",
+  "version": "2.1.0",
+  "description": "debugtrace-js is a library that outputs trace logs when debugging JavaScript programs. It is available on Node.js 12 or later.",
   "main": "debugtrace.js",
   "scripts": {
     "test": "jest"

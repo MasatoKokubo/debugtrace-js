@@ -25,7 +25,7 @@ The following is an example of JavaScript source used debugtrace-js methods and 
 .ReadmeExample.js
 ----
 // ReadmeExample.js
-const debugtrace = require('debugtrace') // for Debugging
+const debugtrace = require('debugtrace-js') // ToDo: Remove after debugging
 
 class Contact {
     constructor(id, firstName, lastName, birthday) {
@@ -37,19 +37,20 @@ class Contact {
 }
 
 function func2() {
-    debugtrace.enter() // for Debugging
+    debugtrace.enter() // ToDo: Remove after debugging
     let contacts = [
-        new Contact(1, "Akane" , "Apple", new Date(Date.UTC(1991, 2, 3))),
-        new Contact(2, "Yukari", "Apple", new Date(Date.UTC(1992, 3, 4)))
+        new Contact(1, 'Akane' , 'Apple', new Date(Date.UTC(1991, 2, 3))),
+        new Contact(2, 'Yukari', 'Apple', new Date(Date.UTC(1992, 3, 4)))
     ]
-    debugtrace.print("contacts", contacts) // for Debugging
-    debugtrace.leave() // for Debugging
+    debugtrace.print('contacts', contacts) // ToDo: Remove after debugging
+    debugtrace.leave() // ToDo: Remove after debugging
 }
 
 function func1() {
-    debugtrace.enter() // for Debugging
+    debugtrace.enter() // ToDo: Remove after debugging
+    debugtrace.printMessage('Hello, World!')
     func2()
-    debugtrace.leave() // for Debugging
+    debugtrace.leave() // ToDo: Remove after debugging
 }
 
 func1()
@@ -57,22 +58,23 @@ func1()
 
 .debugtrace.log
 ----
-2020-07-26 14:55:32.448+09:00 debugtrace 2.0.0
-2020-07-26 14:55:32.463+09:00
-2020-07-26 14:55:32.464+09:00 Enter func1 (ReadmeExample.js:24)
-2020-07-26 14:55:32.465+09:00 | Enter func2 (ReadmeExample.js:14)
-2020-07-26 14:55:32.466+09:00 | | contacts = [
-2020-07-26 14:55:32.467+09:00 | |   (Contact){
-2020-07-26 14:55:32.467+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
-2020-07-26 14:55:32.467+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
-2020-07-26 14:55:32.467+09:00 | |   },
-2020-07-26 14:55:32.467+09:00 | |   (Contact){
-2020-07-26 14:55:32.467+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
-2020-07-26 14:55:32.468+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
-2020-07-26 14:55:32.468+09:00 | |   }
-2020-07-26 14:55:32.468+09:00 | | ] (ReadmeExample.js:19)
-2020-07-26 14:55:32.469+09:00 | Leave func2 (ReadmeExample.js:20) duration: 00:00:00.003
-2020-07-26 14:55:32.469+09:00 Leave func1 (ReadmeExample.js:26) duration: 00:00:00.005
+2021-08-09 13:24:51.087+09:00 debugtrace 2.1.0
+2021-08-09 13:24:51.094+09:00
+2021-08-09 13:24:51.095+09:00 Enter func1 (ReadmeExample.js:25)
+2021-08-09 13:24:51.095+09:00 | Hello, World! (ReadmeExample.js:26)
+2021-08-09 13:24:51.096+09:00 | Enter func2 (ReadmeExample.js:15)
+2021-08-09 13:24:51.097+09:00 | | contacts = [
+2021-08-09 13:24:51.097+09:00 | |   (Contact){
+2021-08-09 13:24:51.097+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
+2021-08-09 13:24:51.098+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
+2021-08-09 13:24:51.098+09:00 | |   },
+2021-08-09 13:24:51.098+09:00 | |   (Contact){
+2021-08-09 13:24:51.099+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
+2021-08-09 13:24:51.099+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
+2021-08-09 13:24:51.099+09:00 | |   }
+2021-08-09 13:24:51.100+09:00 | | ] (ReadmeExample.js:20)
+2021-08-09 13:24:51.100+09:00 | Leave func2 (ReadmeExample.js:21) duration: 00:00:00.004
+2021-08-09 13:24:51.101+09:00 Leave func1 (ReadmeExample.js:28) duration: 00:00:00.005
 ----
 
 === 3. Function List
@@ -115,7 +117,7 @@ The following properties can be specified for on debugtrace.
 |The format function of the log output when entering functions +
 [.small]#*Example:*# +
 &#xa0;&#xa0; `debugtrace.formatEnter = (name, fileName, lineNumber) =&#x3e;` +
-&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Enter ${name} (${fileName}:${lineNumber})&#96;` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Enter ${name} (${fileName}:${lineNumber})&#96;` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `name`: The function name +
 &#xa0;&#xa0; `fileName`:  The file name +
@@ -125,7 +127,7 @@ The following properties can be specified for on debugtrace.
 |The format function of the log output when leaving functions +
 [.small]#*Example:*# +
 &#xa0;&#xa0; `debugtrace.formatLeave = (name, fileName, lineNumber, duration) =&#x3e;` +
-&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Leave ${name} (${fileName}:${lineNumber}) duration: ${duration}&#96;`  [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; &#xa0;&#xa0; `&#96;Leave ${name} (${fileName}:${lineNumber}) duration: ${duration}&#96;`  [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `name`: the function name +
 &#xa0;&#xa0; `fileName`: the file name +
@@ -135,66 +137,66 @@ The following properties can be specified for on debugtrace.
 |`indentString`
 |The indentation string for code +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.indentString = '&#x7c; '` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.indentString = '&#x7c; '` [.small]#[Initial setting]#
 
 |`dataIndentString`
 |The indentation string for data +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.dataIndentString = '  '` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.dataIndentString = '  '` [.small]#[Initial setting]#
 
 |`limitString`
 |The string to represent that it has exceeded the limit +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.limitString = '\...'` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.limitString = '\...'` [.small]#[Initial setting]#
 
 |`cyclicReferenceString`
 |The string to represent that the cyclic reference occurs +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.cyclicReferenceString = '&#x2A;&#x2A;&#x2A; cyclic reference &#x2A;&#x2A;&#x2A;'` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `debugtrace.cyclicReferenceString = '&#x2A;&#x2A;&#x2A; cyclic reference &#x2A;&#x2A;&#x2A;'` [.small]#[Initial setting]# +
 
 |`varNameValueSeparator`
 |The separator string between the variable name and value +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.varNameValueSeparator = ' = '` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `debugtrace.varNameValueSeparator = ' = '` [.small]#[Initial setting]# +
 
 |`keyValueSeparator`
 |The separator string between the key and value of Map object +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.keyValueSeparator = ': '` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `debugtrace.keyValueSeparator = ': '` [.small]#[Initial setting]# +
 
 |`formatPrintSuffix`
 |The format function for string added by the `print` function
 [.small]#*Example:*# +
 &#xa0;&#xa0; `debugtrace.formatPrintSuffix = (name, fileName, lineNumber) =&#x3e;` +
-&#xa0;&#xa0;&#xa0;&#xa0; `&#96; (${fileName}:${lineNumber})&#96;` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0;&#xa0;&#xa0; `&#96; (${fileName}:${lineNumber})&#96;` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
-&#xa0;&#xa0; `name`: the function name [.small .maroon]#_(Not used by default)_# +
+&#xa0;&#xa0; `name`: the function name [.small]#_(Not used by default)_# +
 &#xa0;&#xa0; `fileName`: the file name +
 &#xa0;&#xa0; `lineNumber`: the line number
 
 |`formatLength`
 |The format function for array and string length +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.formatLength = length =&#x3e; &#96;length:${length}&#96;` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `debugtrace.formatLength = length =&#x3e; &#96;length:${length}&#96;` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `length`: number of elements or string length
 
 |`formatSize`
 |The format function for `Map` and `Set` +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.formatSize = size =&#x3e; &#96;size:${size}&#96;` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `debugtrace.formatSize = size =&#x3e; &#96;size:${size}&#96;` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `size`: number of elements
 
 |`minimumOutputLengthAndSize`
 |The minimum value to output the number of elements of array, `Map` and `Set` +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.minimumOutputLengthAndSize = 5` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.minimumOutputLengthAndSize = 5` [.small]#[Initial setting]#
 
 |`minimumOutputStringLength`
 |The minimum value to output the length of string +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.minimumOutputStringLength = 5` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.minimumOutputStringLength = 5` [.small]#[Initial setting]#
 
 |`formatDate`
 |The format function for `Date` +
@@ -214,7 +216,7 @@ The following properties can be specified for on debugtrace.
 &#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;Math.floor(timezoneOffset / 60)).slice(-2) + &#x27;:&#x27; +` +
 &#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;&#xa0;+&#xa0;timezoneOffset % 60).slice(-2)` +
 &#xa0;&#xa0;&#xa0;&#xa0; `return str` +
-&#xa0;&#xa0; `}` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0; `}` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `date`: a `Date`
 
@@ -225,7 +227,7 @@ The following properties can be specified for on debugtrace.
 &#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCHours  ()     ).slice(-2) + &#x27;:&#x27; +` +
 &#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCMinutes()     ).slice(-2) + &#x27;:&#x27; +` +
 &#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;0&#x27;  +  date.getUTCSeconds()     ).slice(-2) + &#x27;.&#x27; +` +
-&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;00&#x27; +  date.getUTCMilliseconds()).slice(-3)` [.small .blue]#*[Initial setting]*# +
+&#xa0;&#xa0;&#xa0;&#xa0; `(&#x27;00&#x27; +  date.getUTCMilliseconds()).slice(-3)` [.small]#[Initial setting]# +
 [.small]#*Parameters:*# +
 &#xa0;&#xa0; `date`: a duration
 
@@ -234,27 +236,34 @@ The following properties can be specified for on debugtrace.
 [.small]#*Example:*# +
 &#xa0;&#xa0; [.small]#_See_# `formatDate` +
 [.small]#*Parameters:*# +
-&#xa0;&#xa0; `date`:  a log `Date`
+&#xa0;&#xa0; `date`: a log `Date`
 
 |`maximumDataOutputWidth`
 |The minimum value to output the length of string +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.maximumDataOutputWidth = 70` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.maximumDataOutputWidth = 70` [.small]#[Initial setting]#
 
 |`collectionLimit`
 |The limit value of elements for array, `Map` and `Set` to output +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.collectionLimit = 512` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.collectionLimit = 512` [.small]#[Initial setting]#
 
 |`stringLimit`
 |The limit value of characters for string to output +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.stringLimit = 8192` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.stringLimit = 8192` [.small]#[Initial setting]#
 
 |`reflectionNestLimit`
 |The limit value for reflection nesting +
 [.small]#*Example:*# +
-&#xa0;&#xa0; `debugtrace.reflectionNestLimit = 4` [.small .blue]#*[Initial setting]*#
+&#xa0;&#xa0; `debugtrace.reflectionNestLimit = 4` [.small]#[Initial setting]#
+
+|`basicPrint` +
+[.small]#(since 2.1.0)#
+|The basic print function +
+[.small]#*Example:*# +
+&#xa0;&#xa0; `debugtrace.basicPrint = console.log` [.small]#[Initial setting]# +
+&#xa0;&#xa0; `debugtrace.basicPrint = console.eror` [.small]#[Output to stderr]#
 
 |===
 
@@ -265,6 +274,12 @@ link:LICENSE.txt[The MIT License (MIT)]
 _(C) 2015 Masato Kokubo_
 
 === 6. Release Notes
+
+==== debugtrace-js 2.1.0 [.small .gray]#- August 9, 2021#
+
+* Improved function output (output only the first line of the function definition)
+* Added the `basicPrint` function
+* Improved the line break handling of data output
 
 ==== debugtrace-js 2.0.0 [.small .gray]#- August 2, 2020#
 
