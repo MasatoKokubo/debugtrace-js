@@ -1,3 +1,4 @@
 out/
 *.bat
 node_modules
+coverage/

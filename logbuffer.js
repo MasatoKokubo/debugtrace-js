@@ -87,20 +87,14 @@ module.exports = class LogBuffer {
      * @param {boolean} noBreak if true, does not break even if the maximum width is exceeded
      * @return {LogBuffer} this object
      */
-// 2.1.0
-//  appendBuffer(buff) {
     appendBuffer(separator, buff) {
         if (separator != null)
             this.append(separator, 0, true)
-////
         let index = 0
         for (const line of buff.lines) {
             if (index > 0)
                 this.lineFeed()
-        // 2.1.0
-        //  this.append(line[1], line[0])
             this.append(line[1], line[0], index == 0 && separator != null)
-        ////
             ++index
         }
         return this

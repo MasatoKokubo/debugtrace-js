@@ -89,14 +89,16 @@ test('print Error', () => {
 })
 
 test('print Function', () => {
-    debugtrace.print('v', function add(a, b) {return a + b})
+    debugtrace.print('v', function add(a, b) {
+        return a + b})
     debugtrace.print('v', debugtrace.lastLog)
-// 2.1.0
-//  expect(debugtrace.lastLog).toContain('v = function add(a, b) {')
-//  expect(debugtrace.lastLog).toContain('  return a + b')
-//  expect(debugtrace.lastLog).toContain('}')
     expect(debugtrace.lastLog).toContain('v = function add(a, b) {...')
-////
+})
+
+test('print () =>', () => {
+    debugtrace.print('v', (a, b) => a + b)
+    debugtrace.print('v', debugtrace.lastLog)
+    expect(debugtrace.lastLog).toContain('(a, b) => a + b')
 })
 
 test('print RegExp', () => {

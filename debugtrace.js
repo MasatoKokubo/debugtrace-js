@@ -171,10 +171,7 @@ function printSub(message) {
 
     reflectedObjects = []
     const logString = debugtrace.formatLogDate(new Date()) + ' ' + message
-// 2.1.0
-//  console.log(logString)
     debugtrace.basicPrint(logString)
-////
 }
 
 /**
@@ -254,10 +251,7 @@ function toStringArray(value) {
         buff.upNest();
     }
 
-// 2.1.0
-//  buff.appendBuffer(bodyBuff);
     buff.appendBuffer(null, bodyBuff);
-////
 
     if (isMultiLines) {
         buff.lineFeed();
@@ -286,10 +280,7 @@ function toStringArrayBody(value) {
         const elementBuff = toString(element)
         if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
             buff.lineFeed()
-    // 2.1.0
-    //  buff.appendBuffer(elementBuff)
         buff.appendBuffer(null, elementBuff)
-    ////
 
         ++index
         wasMultiLines = elementBuff.isMultiLines
@@ -348,15 +339,9 @@ function toStringFunction(value) {
     const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
     const lines = ('' + value).split('\t').join('    ').split('\n')
-// 2.1.0
-//  lines.forEach(line => {
-//      buff.noBreakAppend(line)
-//      buff.lineFeed()
-//  })
     buff.noBreakAppend(lines[0])
     if (lines.length >= 2)
         buff.noBreakAppend(debugtrace.limitString)
-////
 
     return buff
 }
@@ -382,10 +367,7 @@ function toStringObject(value) {
         buff.upNest()
     }
 
-// 2.1.0
-//  buff.appendBuffer(bodyBuff);
     buff.appendBuffer(null, bodyBuff);
-////
 
     if (isMultiLines) {
         if (buff.length > 0)
@@ -408,19 +390,12 @@ function toStringObjectBody(value) {
             buff.noBreakAppend(', ')
 
         const memberBuff = new LogBuffer(debugtrace.maximumDataOutputWidth)
-    // 2.1.0
-    //  memberBuff.append(propertyName).noBreakAppend(debugtrace.keyValueSeparator)
-    //  memberBuff.appendBuffer(toString(value[propertyName]))
         memberBuff.append(propertyName)
         memberBuff.appendBuffer(debugtrace.keyValueSeparator, toString(value[propertyName]))
-    ////
 
         if (index > 0 && (wasMultiLines || memberBuff.isMultiLines))
             buff.lineFeed()
-    // 2.1.0
-    //  buff.appendBuffer(memberBuff)
         buff.appendBuffer(null, memberBuff)
-    ////
 
         wasMultiLines = memberBuff.isMultiLines
         ++index
@@ -450,10 +425,7 @@ function toStringMap(map) {
         buff.upNest();
     }
 
-// 2.1.0
-//  buff.appendBuffer(bodyBuff);
     buff.appendBuffer(null, bodyBuff);
-////
 
     if (isMultiLines) {
         buff.lineFeed();
@@ -480,17 +452,10 @@ function toStringMapBody(map) {
         }
 
         const elementBuff = toString(key)
-    // 2.1.0
-    //  elementBuff.noBreakAppend(debugtrace.keyValueSeparator)
-    //  elementBuff.appendBuffer(toString(map.get(key)))
         elementBuff.appendBuffer(debugtrace.keyValueSeparator, toString(map.get(key)))
-    ////
         if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
             buff.lineFeed()
-    // 2.1.0
-    //  buff.appendBuffer(elementBuff)
         buff.appendBuffer(null, elementBuff)
-    ////
 
         ++index
         wasMultiLines = elementBuff.isMultiLines
@@ -764,11 +729,7 @@ module.exports = (function() {
 
         const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
         buff.append(name)
-        // 2.1.0
-        //  .noBreakAppend(debugtrace.varNameValueSeparator)
-        //  .appendBuffer(toString(value))
             .appendBuffer(debugtrace.varNameValueSeparator, toString(value))
-        ////
             .noBreakAppend(printSuffix)
         let index = 0
         const lines = buff.lines
