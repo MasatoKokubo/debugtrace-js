@@ -36,7 +36,7 @@ class Contact {
   }
 }
 
-function func2() {
+const func2 = () => {
   debugtrace.enter() // ToDo: Remove after debugging
   let contacts = [
     new Contact(1, 'Akane' , 'Apple', new Date(Date.UTC(1991, 2, 3))),
@@ -46,7 +46,7 @@ function func2() {
   debugtrace.leave() // ToDo: Remove after debugging
 }
 
-function func1() {
+const func1 = () => {
   debugtrace.enter() // ToDo: Remove after debugging
   debugtrace.printMessage('Hello, World!')
   func2()
@@ -58,23 +58,23 @@ func1()
 
 .debugtrace.log
 ----
-2021-08-09 13:24:51.087+09:00 debugtrace 2.1.0
-2021-08-09 13:24:51.094+09:00
-2021-08-09 13:24:51.095+09:00 Enter func1 (ReadmeExample.js:25)
-2021-08-09 13:24:51.095+09:00 | Hello, World! (ReadmeExample.js:26)
-2021-08-09 13:24:51.096+09:00 | Enter func2 (ReadmeExample.js:15)
-2021-08-09 13:24:51.097+09:00 | | contacts = [
-2021-08-09 13:24:51.097+09:00 | |   (Contact){
-2021-08-09 13:24:51.097+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
-2021-08-09 13:24:51.098+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
-2021-08-09 13:24:51.098+09:00 | |   },
-2021-08-09 13:24:51.098+09:00 | |   (Contact){
-2021-08-09 13:24:51.099+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
-2021-08-09 13:24:51.099+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
-2021-08-09 13:24:51.099+09:00 | |   }
-2021-08-09 13:24:51.100+09:00 | | ] (ReadmeExample.js:20)
-2021-08-09 13:24:51.100+09:00 | Leave func2 (ReadmeExample.js:21) duration: 00:00:00.004
-2021-08-09 13:24:51.101+09:00 Leave func1 (ReadmeExample.js:28) duration: 00:00:00.005
+2021-10-09 13:27:22.912+09:00 debugtrace-js 2.1.1 (Node.js 16.11.0)
+2021-10-09 13:27:22.917+09:00
+2021-10-09 13:27:22.917+09:00 Enter func1 (ReadmeExample.js:25)
+2021-10-09 13:27:22.918+09:00 | Hello, World! (ReadmeExample.js:26)
+2021-10-09 13:27:22.918+09:00 | Enter func2 (ReadmeExample.js:15)
+2021-10-09 13:27:22.919+09:00 | | contacts = [
+2021-10-09 13:27:22.920+09:00 | |   (Contact){
+2021-10-09 13:27:22.920+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
+2021-10-09 13:27:22.920+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
+2021-10-09 13:27:22.920+09:00 | |   },
+2021-10-09 13:27:22.920+09:00 | |   (Contact){
+2021-10-09 13:27:22.920+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
+2021-10-09 13:27:22.921+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
+2021-10-09 13:27:22.921+09:00 | |   }
+2021-10-09 13:27:22.921+09:00 | | ] (ReadmeExample.js:20)
+2021-10-09 13:27:22.921+09:00 | Leave func2 (ReadmeExample.js:21) duration: 00:00:00.003
+2021-10-09 13:27:22.922+09:00 Leave func1 (ReadmeExample.js:28) duration: 00:00:00.004
 ----
 
 === 3. Function List
@@ -274,6 +274,11 @@ link:LICENSE.txt[The MIT License (MIT)]
 _(C) 2015 Masato Kokubo_
 
 === 6. Release Notes
+
+==== debugtrace-js 2.1.1 [.small .gray]#- October 9, 2021#
+
+* Fixed a bug that an exception is thrown when outputting a type name.
+* Changed to output Node.js version at startup.
 
 ==== debugtrace-js 2.1.0 [.small .gray]#- August 9, 2021#
 

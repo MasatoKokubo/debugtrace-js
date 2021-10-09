@@ -1,11 +1,7 @@
 const debugtrace = require('../debugtrace')
 
-beforeAll(() => {
-  debugtrace.maximumDataOutputWidth = 60
-})
-
+beforeAll(() => debugtrace.maximumDataOutputWidth = 60)
 beforeEach(() => debugtrace.enter())
-
 afterEach(() => debugtrace.leave())
 
 class Contact {

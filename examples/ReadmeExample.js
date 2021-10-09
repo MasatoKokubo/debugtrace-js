@@ -11,7 +11,7 @@ class Contact {
   }
 }
 
-function func2() {
+const func2 = () => {
   debugtrace.enter() // ToDo: Remove after debugging
   let contacts = [
     new Contact(1, 'Akane' , 'Apple', new Date(Date.UTC(1991, 2, 3))),
@@ -21,7 +21,7 @@ function func2() {
   debugtrace.leave() // ToDo: Remove after debugging
 }
 
-function func1() {
+const func1 = () => {
   debugtrace.enter() // ToDo: Remove after debugging
   debugtrace.printMessage('Hello, World!')
   func2()

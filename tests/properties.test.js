@@ -18,7 +18,6 @@ debugtrace.stringLimit                = 10
 debugtrace.reflectionNestLimit        = 2
 
 beforeEach(() => debugtrace.enter())
-
 afterEach(() => debugtrace.leave())
 
 test('formatEnter, formatLeave, indentString, varNameValueSeparator, formatPrintSuffix', () => {

@@ -21,7 +21,7 @@ const dataIndentStrings = []
 const enterTimes = []
 
 // version
-const version = '2.1.0'
+const version = '2.1.1'
 
 // Reflected object array
 let reflectedObjects = []
@@ -36,7 +36,7 @@ let initialized = false
  * @param {number} dataNestLevel the data nest level
  * @return {string} a indent string
  */
-function getIndentString(dataNestLevel = 0) {
+const getIndentString = (dataNestLevel = 0) => {
   // make indentStrings if necessary
   if (indentStrings.length < 2 || indentStrings[1] != debugtrace.indentString) {
     indentStrings.splice(0, indentStrings.length) // initializes the array
@@ -67,7 +67,7 @@ function getIndentString(dataNestLevel = 0) {
  * Increases the nest level.
  * @private
  */
-function upNest() {
+const upNest = () => {
   previousNestLevel = nestLevel
   ++nestLevel
 }
@@ -76,7 +76,7 @@ function upNest() {
  * Decreases the nesting level.
  * @private
  */
-function downNest() {
+const downNest = () => {
   previousNestLevel = nestLevel
   --nestLevel
 }
@@ -86,7 +86,7 @@ function downNest() {
  * @private
  * @return a caller stack trace element
  */
-function getCallerInfo() {
+const getCallerInfo = () => {
   const myModuleName = 'debugtrace\.js$'
 
   const callerInfos = new Error('').stack.split('\n')
@@ -129,8 +129,12 @@ function getCallerInfo() {
  * @param {string} message the message to output
  * @param {boolean} withCallerInfo - true if outputs the caller infomation, false otherwise
  */
-function getTypeName(value) {
-  let typeName = value.constructor.name
+const getTypeName = value => {
+// 2.1.1
+//let typeName = value.constructor.name
+  let typeName = ''
+  try {typeName = value.constructor.name} catch {}
+////
   const length = value.length || -1
   const size = value.size || -1
   
@@ -162,10 +166,10 @@ function getTypeName(value) {
  * @private
  * @param {string} message the message to output
  */
-function printSub(message) {
+const printSub = message => {
   if (!initialized) {
     initialized = true
-    printSub('debugtrace ' + version)
+    printSub('debugtrace-js ' + version + ' (Node.js ' + process.versions.node + ')')
     printSub('')
   }
 
@@ -180,7 +184,7 @@ function printSub(message) {
  * @param {*} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-function toString(value) {
+const toString = value => {
   let buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   if (value === undefined)
@@ -236,7 +240,7 @@ function toString(value) {
  * @param {Array} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-function toStringArray(value) {
+const toStringArray = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   buff.noBreakAppend(getTypeName(value))
@@ -263,7 +267,7 @@ function toStringArray(value) {
   return buff;
 }
 
-function toStringArrayBody(value) {
+const toStringArrayBody = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0
@@ -295,7 +299,7 @@ function toStringArrayBody(value) {
  * @param {string} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-function toStringString(value) {
+const toStringString = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
   buff.noBreakAppend(getTypeName(value))
   buff.noBreakAppend('\'')
@@ -335,10 +339,13 @@ function toStringString(value) {
  * @param {Function} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-function toStringFunction(value) {
+const toStringFunction = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-  const lines = ('' + value).split('\t').join('  ').split('\n')
+// 2.1.1
+//const lines = ('' + value).split('\t').join('  ').split('\n')
+  const lines = ('' + value).split('\n')
+////
   buff.noBreakAppend(lines[0])
   if (lines.length >= 2)
     buff.noBreakAppend(debugtrace.limitString)
@@ -352,7 +359,7 @@ function toStringFunction(value) {
  * @param {object} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-function toStringObject(value) {
+const toStringObject = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   buff.append(getTypeName(value))
@@ -380,7 +387,7 @@ function toStringObject(value) {
   return buff
 }
 
-function toStringObjectBody(value) {
+const toStringObjectBody = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0 
@@ -410,7 +417,7 @@ function toStringObjectBody(value) {
  * @param {Map} map the map to output
  * @return {LogBuffer} a LogBuffer
  */
-function toStringMap(map) {
+const toStringMap = map => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   buff.noBreakAppend(getTypeName(map))
@@ -437,7 +444,7 @@ function toStringMap(map) {
   return buff;
 }
 
-function toStringMapBody(map) {
+const toStringMapBody = map => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0
