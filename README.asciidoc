@@ -58,23 +58,23 @@ func1()
 
 .debugtrace.log
 ----
-2021-10-09 13:27:22.912+09:00 debugtrace-js 2.1.1 (Node.js 16.11.0)
-2021-10-09 13:27:22.917+09:00
-2021-10-09 13:27:22.917+09:00 Enter func1 (ReadmeExample.js:25)
-2021-10-09 13:27:22.918+09:00 | Hello, World! (ReadmeExample.js:26)
-2021-10-09 13:27:22.918+09:00 | Enter func2 (ReadmeExample.js:15)
-2021-10-09 13:27:22.919+09:00 | | contacts = [
-2021-10-09 13:27:22.920+09:00 | |   (Contact){
-2021-10-09 13:27:22.920+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
-2021-10-09 13:27:22.920+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
-2021-10-09 13:27:22.920+09:00 | |   },
-2021-10-09 13:27:22.920+09:00 | |   (Contact){
-2021-10-09 13:27:22.920+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
-2021-10-09 13:27:22.921+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
-2021-10-09 13:27:22.921+09:00 | |   }
-2021-10-09 13:27:22.921+09:00 | | ] (ReadmeExample.js:20)
-2021-10-09 13:27:22.921+09:00 | Leave func2 (ReadmeExample.js:21) duration: 00:00:00.003
-2021-10-09 13:27:22.922+09:00 Leave func1 (ReadmeExample.js:28) duration: 00:00:00.004
+2022-03-13 09:29:51.293+09:00 debugtrace-js 2.1.2 (Node.js 16.13.2)
+2022-03-13 09:29:51.304+09:00
+2022-03-13 09:29:51.305+09:00 Enter func1 (ReadmeExample.js:25)
+2022-03-13 09:29:51.305+09:00 | Hello, World! (ReadmeExample.js:26)
+2022-03-13 09:29:51.305+09:00 | Enter func2 (ReadmeExample.js:15)
+2022-03-13 09:29:51.307+09:00 | | contacts = [
+2022-03-13 09:29:51.307+09:00 | |   (Contact){
+2022-03-13 09:29:51.307+09:00 | |     id: 1, firstName: (length:5)'Akane', lastName: (length:5)'Apple',
+2022-03-13 09:29:51.307+09:00 | |     birthday: 1991-03-03 09:00:00.000+09:00
+2022-03-13 09:29:51.307+09:00 | |   },
+2022-03-13 09:29:51.308+09:00 | |   (Contact){
+2022-03-13 09:29:51.308+09:00 | |     id: 2, firstName: (length:6)'Yukari', lastName: (length:5)'Apple',
+2022-03-13 09:29:51.308+09:00 | |     birthday: 1992-04-04 09:00:00.000+09:00
+2022-03-13 09:29:51.308+09:00 | |   }
+2022-03-13 09:29:51.308+09:00 | | ] (ReadmeExample.js:20)
+2022-03-13 09:29:51.309+09:00 | Leave func2 (ReadmeExample.js:21) duration: 00:00:00.003
+2022-03-13 09:29:51.309+09:00 Leave func1 (ReadmeExample.js:28) duration: 00:00:00.004
 ----
 
 === 3. Function List
@@ -84,22 +84,26 @@ This library has the following methods. These have no return value.
 [options="header"]
 .Function List
 |===
-|Function Name|Arguments|Description
+|Function Name|Arguments|Return Value|Description
 |`enter`
+|_None_
 |_None_
 |Outputs function start to log.
 
 |`leave`
 |_None_
+|_None_
 |Outputs method end to log.
 
 |`printMessage`
 |`message`: the message
+|the message of an argument
 |Outputs the message to log.
 
 |`print`
 |`name`: the value name +
 `value`: the value
+|the value of an argument
 |Outputs to the log in the form of +
 `name = value`
 
@@ -274,6 +278,10 @@ link:LICENSE.txt[The MIT License (MIT)]
 _(C) 2015 Masato Kokubo_
 
 === 6. Release Notes
+
+==== debugtrace-js 2.1.1 [.small .gray]#- March 13, 2022#
+
+* The `print` and `printMessage` functions now return the argument value.
 
 ==== debugtrace-js 2.1.1 [.small .gray]#- October 9, 2021#
 

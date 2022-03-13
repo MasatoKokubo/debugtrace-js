@@ -21,7 +21,7 @@ const dataIndentStrings = []
 const enterTimes = []
 
 // version
-const version = '2.1.1'
+const version = '2.1.2'
 
 // Reflected object array
 let reflectedObjects = []
@@ -130,11 +130,8 @@ const getCallerInfo = () => {
  * @param {boolean} withCallerInfo - true if outputs the caller infomation, false otherwise
  */
 const getTypeName = value => {
-// 2.1.1
-//let typeName = value.constructor.name
   let typeName = ''
   try {typeName = value.constructor.name} catch {}
-////
   const length = value.length || -1
   const size = value.size || -1
   
@@ -342,10 +339,7 @@ const toStringString = value => {
 const toStringFunction = value => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-// 2.1.1
-//const lines = ('' + value).split('\t').join('  ').split('\n')
   const lines = ('' + value).split('\n')
-////
   buff.noBreakAppend(lines[0])
   if (lines.length >= 2)
     buff.noBreakAppend(debugtrace.limitString)
@@ -709,7 +703,7 @@ module.exports = (function() {
    * Outputs the message to the log.
    * @param {string} message the message
    */
-  debugtrace.printMessage = (message) => {
+  debugtrace.printMessage = message => {
     const callerInfo = getCallerInfo()
     const printSuffix = debugtrace.formatPrintSuffix(
       callerInfo.functionName,
@@ -719,6 +713,7 @@ module.exports = (function() {
 
     debugtrace.lastLog = getIndentString() + message + printSuffix
     printSub(debugtrace.lastLog)
+    return message
   }
 
   /**
@@ -749,6 +744,7 @@ module.exports = (function() {
       printSub(outputLine)
       ++index
     }
+    return value
   }
 
   return debugtrace

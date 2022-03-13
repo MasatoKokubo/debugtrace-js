@@ -3,22 +3,22 @@ const debugtrace = require('../debugtrace')
 beforeAll(() => debugtrace.maximumDataOutputWidth = 200)
 
 test('printMessage', () => {
-  debugtrace.printMessage('a message', null)
-  expect(debugtrace.lastLog).toContain('a message')
+  let message = 'a message'
+  expect(debugtrace.printMessage(message) === message)
+  expect(debugtrace.lastLog).toContain(message)
 })
 
 test('print null, etc', () => {
-  debugtrace.print('v', null)
+  expect(debugtrace.print('v', null) === null)
   expect(debugtrace.lastLog).toContain('v = null')
 
-  let v = undefined
-  debugtrace.print('v', v)
+  expect(debugtrace.print('v', undefined) === undefined)
   expect(debugtrace.lastLog).toContain('v = undefined')
 
-  debugtrace.print('v', Infinity)
+  expect(debugtrace.print('v', Infinity) === Infinity)
   expect(debugtrace.lastLog).toContain('v = Infinity')
 
-  debugtrace.print('v', NaN)
+  expect(debugtrace.print('v', NaN) === NaN)
   expect(debugtrace.lastLog).toContain('v = NaN')
 })
 
@@ -34,41 +34,47 @@ test('print Symbol', () => {
 })
 
 test('print Boolean', () => {
-  debugtrace.print('v', false)
+  expect(debugtrace.print('v', false) === false)
   expect(debugtrace.lastLog).toContain('v = false')
 
-  debugtrace.print('v', true)
+  expect(debugtrace.print('v', true) === true)
   expect(debugtrace.lastLog).toContain('v = true')
 })
 
 test('print Number', () => {
-  debugtrace.print('v', 1)
+  expect(debugtrace.print('v', 1) === 1)
   expect(debugtrace.lastLog).toContain('v = 1')
 
-  debugtrace.print('v', -123456789)
+  expect(debugtrace.print('v', -123456789) === -123456789)
   expect(debugtrace.lastLog).toContain('v = -123456789')
 
-  debugtrace.print('v', 13456789)
+  expect(debugtrace.print('v', 13456789) === 123456789)
   expect(debugtrace.lastLog).toContain('v = 13456789')
 })
 
 test('print String', () => {
-  debugtrace.print('v', 'ABCD')
+  let v = 'ABCD'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = 'ABCD'")
 
-  debugtrace.print('v', 'ABCDE')
+  v = 'ABCDE'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = (length:5)'ABCDE'")
 
-  debugtrace.print('v', '\0\b\t\n\v\f\'\\')
+  v = '\0\b\t\n\v\f\'\\'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = (length:8)'\\0\\b\\t\\n\\v\\f\\'\\\\'")
 
-  debugtrace.print('v', '\x01\x02\x03\x04\x05\x06\x07\x0E\x0F')
+  v = '\x01\x02\x03\x04\x05\x06\x07\x0E\x0F'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = (length:9)'\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x0E\\x0F'")
 
-  debugtrace.print('v', '\x10\x11\x12\x13\x14\x15\x16\x17')
+  v = '\x10\x11\x12\x13\x14\x15\x16\x17'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = (length:8)'\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17'")
 
-  debugtrace.print('v', '\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F')
+  v = '\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F'
+  expect(debugtrace.print('v', v) === v)
   expect(debugtrace.lastLog).toContain("v = (length:9)'\\x18\\x19\\x1A\\x1B\\x1C\\x1D\\x1E\\x1F\\x7F'")
 })
 
