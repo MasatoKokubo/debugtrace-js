@@ -21,7 +21,7 @@ const dataIndentStrings = []
 const enterTimes = []
 
 // version
-const version = '2.1.2'
+const version = '2.2.0'
 
 // Reflected object array
 let reflectedObjects = []
@@ -129,27 +129,29 @@ const getCallerInfo = () => {
  * @param {string} message the message to output
  * @param {boolean} withCallerInfo - true if outputs the caller infomation, false otherwise
  */
-const getTypeName = value => {
+const getTypeName = (value, printOptions) => {
   let typeName = ''
   try {typeName = value.constructor.name} catch {}
-  const length = value.length || -1
-  const size = value.size || -1
   
   if (typeName == 'String') {
     typeName = ''
-    if (length >= debugtrace.minimumOutputStringLength)
-      typeName = debugtrace.formatLength(length)
+    if (printOptions.stringLength)
+      typeName = debugtrace.formatLength(value.length)
   } else {
     if (typeName == 'Array')
       typeName = ''
-    if (length >= debugtrace.minimumOutputLengthAndSize) {
-      if (typeName.length > 0)
-        typeName += ' '
-      typeName += debugtrace.formatLength(length)
-    } else if (size >= debugtrace.minimumOutputLengthAndSize) {
-      if (typeName.length > 0)
-        typeName += ' '
-      typeName += debugtrace.formatSize(size)
+    if (printOptions.arrayLength) {
+      if (value.length >= 0) {
+        if (typeName.length > 0)
+          typeName += ' '
+        typeName += debugtrace.formatLength(value.length)
+      }
+    } else if (printOptions.size) {
+      if (value.size >= 0) {
+        if (typeName.length > 0)
+          typeName += ' '
+        typeName += debugtrace.formatSize(value.size)
+      }
     }
   }
 
@@ -166,7 +168,7 @@ const getTypeName = value => {
 const printSub = message => {
   if (!initialized) {
     initialized = true
-    printSub('debugtrace-js ' + version + ' (Node.js ' + process.versions.node + ')')
+    printSub('debugtrace-js ' + version + ' on Node.js ' + process.versions.node)
     printSub('')
   }
 
@@ -181,7 +183,7 @@ const printSub = message => {
  * @param {*} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-const toString = value => {
+const toString = (value, printOptions) => {
   let buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   if (value === undefined)
@@ -198,25 +200,25 @@ const toString = value => {
     case 'Error'   :
     case 'RegExp'  : buff.append(value); break
     case 'Date'    : buff.append(debugtrace.formatDate(value)); break
-    case 'String'  : buff = toStringString(value); break
-    case 'Function': buff = toStringFunction(value); break
+    case 'String'  : buff = toStringString(value, printOptions); break
+    case 'Function': buff = toStringFunction(value, printOptions); break
     default:
       if (reflectedObjects.findIndex(element => element === value) >= 0)
         buff.noBreakAppend(debugtrace.cyclicReferenceString)
       else {
         reflectedObjects.push(value)
         if (type.endsWith('Array'))
-          buff = toStringArray(value)
+          buff = toStringArray(value, printOptions)
         else {
           switch (type) {
-          case 'Map': buff = toStringMap(value); break
-          case 'Set': buff = toStringArray(value); break
+          case 'Map': buff = toStringMap(value, printOptions); break
+          case 'Set': buff = toStringArray(value, printOptions); break
           default:
-            if (reflectionNest >= debugtrace.reflectionNestLimit) {
+            if (reflectionNest >= printOptions.reflectionNestLimit) {
               buff.noBreakAppend(debugtrace.limitString)
             } else {
               ++reflectionNest
-              buff = toStringObject(value)
+              buff = toStringObject(value, printOptions)
               --reflectionNest
             }
             break
@@ -237,13 +239,13 @@ const toString = value => {
  * @param {Array} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-const toStringArray = value => {
+const toStringArray = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-  buff.noBreakAppend(getTypeName(value))
+  buff.noBreakAppend(getTypeName(value, printOptions))
   buff.noBreakAppend('[')
 
-  const bodyBuff = toStringArrayBody(value)
+  const bodyBuff = toStringArrayBody(value, printOptions)
 
   const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth;
 
@@ -264,7 +266,7 @@ const toStringArray = value => {
   return buff;
 }
 
-const toStringArrayBody = value => {
+const toStringArrayBody = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0
@@ -273,12 +275,12 @@ const toStringArrayBody = value => {
     if (index > 0)
       buff.noBreakAppend(', ')
 
-    if (index >= debugtrace.collectionLimit) {
+    if (index >= printOptions.collectionLimit) {
       buff.append(debugtrace.limitString)
       break
     }
 
-    const elementBuff = toString(element)
+    const elementBuff = toString(element, printOptions)
     if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
       buff.lineFeed()
     buff.appendBuffer(null, elementBuff)
@@ -296,13 +298,13 @@ const toStringArrayBody = value => {
  * @param {string} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-const toStringString = value => {
+const toStringString = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
-  buff.noBreakAppend(getTypeName(value))
+  buff.noBreakAppend(getTypeName(value, printOptions))
   buff.noBreakAppend('\'')
   let index = 0
   for (let ch of value) {
-    if (index >= debugtrace.stringLimit) {
+    if (index >= printOptions.stringLimit) {
       buff.noBreakAppend(debugtrace.limitString)
       break
     }
@@ -336,7 +338,7 @@ const toStringString = value => {
  * @param {Function} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-const toStringFunction = value => {
+const toStringFunction = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   const lines = ('' + value).split('\n')
@@ -353,12 +355,12 @@ const toStringFunction = value => {
  * @param {object} value the value to output
  * @return {LogBuffer} a LogBuffer
  */
-const toStringObject = value => {
+const toStringObject = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-  buff.append(getTypeName(value))
+  buff.append(getTypeName(value, printOptions))
 
-  const bodyBuff = toStringObjectBody(value)
+  const bodyBuff = toStringObjectBody(value, printOptions)
 
   const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth
   buff.noBreakAppend('{')
@@ -381,7 +383,7 @@ const toStringObject = value => {
   return buff
 }
 
-const toStringObjectBody = value => {
+const toStringObjectBody = (value, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0 
@@ -392,7 +394,7 @@ const toStringObjectBody = value => {
 
     const memberBuff = new LogBuffer(debugtrace.maximumDataOutputWidth)
     memberBuff.append(propertyName)
-    memberBuff.appendBuffer(debugtrace.keyValueSeparator, toString(value[propertyName]))
+    memberBuff.appendBuffer(debugtrace.keyValueSeparator, toString(value[propertyName], printOptions))
 
     if (index > 0 && (wasMultiLines || memberBuff.isMultiLines))
       buff.lineFeed()
@@ -411,13 +413,13 @@ const toStringObjectBody = value => {
  * @param {Map} map the map to output
  * @return {LogBuffer} a LogBuffer
  */
-const toStringMap = map => {
+const toStringMap = (map, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
-  buff.noBreakAppend(getTypeName(map))
+  buff.noBreakAppend(getTypeName(map, printOptions))
   buff.noBreakAppend('{')
 
-  const bodyBuff = toStringMapBody(map)
+  const bodyBuff = toStringMapBody(map, printOptions)
 
   const isMultiLines = bodyBuff.isMultiLines || buff.length + bodyBuff.length > debugtrace.maximumDataOutputWidth;
 
@@ -438,7 +440,7 @@ const toStringMap = map => {
   return buff;
 }
 
-const toStringMapBody = map => {
+const toStringMapBody = (map, printOptions) => {
   const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
 
   let index = 0
@@ -447,13 +449,13 @@ const toStringMapBody = map => {
     if (index > 0)
       buff.noBreakAppend(', ')
 
-    if (index >= debugtrace.collectionLimit) {
+    if (index >= printOptions.collectionLimit) {
       buff.append(debugtrace.limitString)
       break
     }
 
-    const elementBuff = toString(key)
-    elementBuff.appendBuffer(debugtrace.keyValueSeparator, toString(map.get(key)))
+    const elementBuff = toString(key, printOptions)
+    elementBuff.appendBuffer(debugtrace.keyValueSeparator, toString(map.get(key), printOptions))
     if (index > 0 && (wasMultiLines|| elementBuff.isMultiLines))
       buff.lineFeed()
     buff.appendBuffer(null, elementBuff)
@@ -465,7 +467,7 @@ const toStringMapBody = map => {
   return buff
 }
 
-let debugtrace = {}
+const debugtrace = {}
 
 /**
  * @namespace debugtrace
@@ -561,18 +563,6 @@ module.exports = (function() {
   debugtrace.formatSize = size => `size:${size}`
 
   /**
-   * Minimum value to output the number of elements of Array, Map, and Set.
-   * @type {number}
-   */
-  debugtrace.minimumOutputLengthAndSize = 5
-
-  /**
-   * Minimum value to output the number of elements of string.
-   * @type {number}
-   */
-  debugtrace.minimumOutputStringLength = 5
-
-  /**
    * Formatting function of Date.
    * @type {function}
    * @param {Date} date the date
@@ -640,13 +630,13 @@ module.exports = (function() {
    * Limit value of elements for array, Map and Set to output.
    * @type {number}
    */
-  debugtrace.collectionLimit = 512
+  debugtrace.collectionLimit = 128 // <- 512 since 2.2.0
 
   /**
    * Limit value of characters for string to output.
    * @type {number}
    */
-  debugtrace.stringLimit = 8192
+  debugtrace.stringLimit = 256 // <- 8192 since 2.2.0
 
   /**
    * The limit value for reflection nesting.
@@ -702,6 +692,7 @@ module.exports = (function() {
   /**
    * Outputs the message to the log.
    * @param {string} message the message
+   * @return {*} the message
    */
   debugtrace.printMessage = message => {
     const callerInfo = getCallerInfo()
@@ -720,8 +711,24 @@ module.exports = (function() {
    * Outputs the name and the value to the log.
    * @param {string} name the name of the value
    * @param {*} value the value to output
+   * @param {Object} printOptions it has the following properties:
+   *   stringLength: If true, outputs the string length
+   *   arrayLength: If true, outputs the array length
+   *   size: If true, outputs the size of Map or Set
+   *   collectionLimit: Limit on the number of output elements for Map and Set
+   *   stringLimit: Limit on the number of output characters for strings
+   *   reflectionNestLimit: Limit on the number of reflection nests
+   * @return {*} the value
    */
-  debugtrace.print = (name, value) => {
+  debugtrace.print = (name, value, printOptions) => {
+    printOptions ??= new Object()
+    printOptions.stringLength ??= false
+    printOptions.arrayLength ??= false
+    printOptions.size ??= false
+    printOptions.collectionLimit ??= debugtrace.collectionLimit
+    printOptions.stringLimit ??= debugtrace.stringLimit
+    printOptions.reflectionNestLimit ??= debugtrace.reflectionNestLimit
+
     const callerInfo = getCallerInfo()
     const printSuffix = debugtrace.formatPrintSuffix(
       callerInfo.functionName,
@@ -731,7 +738,7 @@ module.exports = (function() {
 
     const buff = new LogBuffer(debugtrace.maximumDataOutputWidth)
     buff.append(name)
-      .appendBuffer(debugtrace.varNameValueSeparator, toString(value))
+      .appendBuffer(debugtrace.varNameValueSeparator, toString(value, printOptions))
       .noBreakAppend(printSuffix)
     let index = 0
     const lines = buff.lines

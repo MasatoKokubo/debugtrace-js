@@ -96,7 +96,7 @@ test('no line break: name = value', () => {
   debugtrace.print('foo', foo)
 
   // then:
-  expect(debugtrace.lastLog).toContain('foo = (length:60)\'0000000000')
+  expect(debugtrace.lastLog).toContain("foo = '000000000011111111112222222222333333333344444444445555555555'")
 })
 
 /** @since 2.1.0 */
@@ -109,7 +109,7 @@ test('no line break: Object: key: value', () => {
   debugtrace.print('foo', foo)
 
   // then:
-  expect(debugtrace.lastLog).toContain('bar: (length:60)\'0000000000')
+  expect(debugtrace.lastLog).toContain("bar: '000000000011111111112222222222333333333344444444445555555555'")
 })
 
 /** @since 2.1.0 */
@@ -122,5 +122,5 @@ test('no line break: Map: key: value', () => {
   debugtrace.print('foo', foo)
 
   // then:
-  expect(debugtrace.lastLog).toContain('1: (length:60)\'0000000000')
+  expect(debugtrace.lastLog).toContain("1: '000000000011111111112222222222333333333344444444445555555555")
 })

@@ -1,6 +1,6 @@
 // ReadmeExample.js
-// const debugtrace = require('debugtrace-js') // ToDo: Remove after debugging
-const debugtrace = require('../debugtrace') // ToDo: Remove after debugging
+//const debugtrace = require('debugtrace-js') // TODO: Debug
+const debugtrace = require('../debugtrace.js') // TODO: Debug
 
 class Contact {
   constructor(id, firstName, lastName, birthday) {
@@ -12,20 +12,20 @@ class Contact {
 }
 
 const func2 = () => {
-  debugtrace.enter() // ToDo: Remove after debugging
+  debugtrace.enter() // TODO: Debug
   let contacts = [
     new Contact(1, 'Akane' , 'Apple', new Date(Date.UTC(1991, 2, 3))),
     new Contact(2, 'Yukari', 'Apple', new Date(Date.UTC(1992, 3, 4)))
   ]
-  debugtrace.print('contacts', contacts) // ToDo: Remove after debugging
-  debugtrace.leave() // ToDo: Remove after debugging
+  debugtrace.print('contacts', contacts) // TODO: Debug
+  debugtrace.leave() // TODO: Debug
 }
 
 const func1 = () => {
-  debugtrace.enter() // ToDo: Remove after debugging
+  debugtrace.enter() // TODO: Debug
   debugtrace.printMessage('Hello, World!')
   func2()
-  debugtrace.leave() // ToDo: Remove after debugging
+  debugtrace.leave() // TODO: Debug
 }
 
 func1()

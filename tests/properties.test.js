@@ -11,8 +11,6 @@ debugtrace.keyValueSeparator          = ':: '
 debugtrace.formatPrintSuffix          = (name, fileName, lineNumber) => ` (${fileName}::${lineNumber})`
 debugtrace.formatLength               = length => `_length_:${length}`
 debugtrace.formatSize                 = size => `_size_:${size}`
-debugtrace.minimumOutputLengthAndSize = 4
-debugtrace.minimumOutputStringLength  = 6
 debugtrace.collectionLimit            = 5
 debugtrace.stringLimit                = 10
 debugtrace.reflectionNestLimit        = 2
@@ -35,9 +33,11 @@ test('formatEnter, formatLeave, indentString, varNameValueSeparator, formatPrint
 })
 
 test('varNameValueSeparator, dataIndentString, formatLength', () => {
-  debugtrace.print('v', ['AAAAAAAAAA', 'BBBBBBBBBB', 'CCCCCCCCCC'])
+  debugtrace.print('v', ['AAAAAAAAAA', 'BBBBBBBBBB', 'CCCCCCCCCC'], {stringLength:true})
   expect(debugtrace.lastLog).toContain("v <= [")
+  expect(debugtrace.lastLog).toContain("``(_length_:10)'AAAAAAAAAA', (_length_:10)'BBBBBBBBBB',")
   expect(debugtrace.lastLog).toContain("``(_length_:10)'CCCCCCCCCC'")
+  expect(debugtrace.lastLog).toContain("]")
 })
 
 test('Array collectionLimit, limitString', () => {
@@ -51,27 +51,27 @@ test('Array collectionLimit, limitString', () => {
 test('Map collectionLimit, limitString, formatSize, keyValueSeparator', () => {
   const v = new Map()
   v.set(1, 'A'); v.set(2, 'B'); v.set(3, 'C'); v.set(4, 'D'); v.set(5, 'E')
-  debugtrace.print('v', v)
+  debugtrace.print('v', v, {size:true})
   expect(debugtrace.lastLog).toContain("(Map _size_:5){1:: 'A', 2:: 'B', 3:: 'C', 4:: 'D', 5:: 'E'}")
 
   v.set(6, 'F')
-  debugtrace.print('v', v)
+  debugtrace.print('v', v, {size:true})
   expect(debugtrace.lastLog).toContain("(Map _size_:6){1:: 'A', 2:: 'B', 3:: 'C', 4:: 'D', 5:: 'E', <Limit>}")
 })
 
 test('Set collectionLimit, limitString, formatSize', () => {
-  debugtrace.print('v', new Set([1, 2, 3, 4, 5]))
+  debugtrace.print('v', new Set([1, 2, 3, 4, 5]), {size:true})
   expect(debugtrace.lastLog).toContain("(Set _size_:5)[1, 2, 3, 4, 5]")
 
-  debugtrace.print('v', new Set([1, 2, 3, 4, 5, 6]))
+  debugtrace.print('v', new Set([1, 2, 3, 4, 5, 6]), {size:true})
   expect(debugtrace.lastLog).toContain("(Set _size_:6)[1, 2, 3, 4, 5, <Limit>]")
 })
 
 test('stringLimit, limitString', () => {
-  debugtrace.print('v', 'ABCDEFGHIJ')
+  debugtrace.print('v', 'ABCDEFGHIJ', {stringLength:true})
   expect(debugtrace.lastLog).toContain("(_length_:10)'ABCDEFGHIJ'")
 
-  debugtrace.print('v',  'ABCDEFGHIJK')
+  debugtrace.print('v',  'ABCDEFGHIJK', {stringLength:true})
   expect(debugtrace.lastLog).toContain("(_length_:11)'ABCDEFGHIJ<Limit>'")
 })
 
@@ -114,15 +114,15 @@ test('Set cyclicReferenceString', () => {
   expect(debugtrace.lastLog).toContain("(Set)[1, <CyclicReference>, 3]")
 })
 
-test('Array minimumOutputLengthAndSize', () => {
+test('Array length', () => {
   debugtrace.print('v', [1, 2, 3])
   expect(debugtrace.lastLog).toContain("v <= [1, 2, 3]")
 
-  debugtrace.print('v', [1, 2, 3, 4])
+  debugtrace.print('v', [1, 2, 3, 4], {arrayLength:true})
   expect(debugtrace.lastLog).toContain("v <= (_length_:4)[1, 2, 3, 4]")
 })
 
-test('Map minimumOutputLengthAndSize', () => {
+test('Map size', () => {
   const v = new Map()
   v.set(1, 'A')
   v.set(2, 'B')
@@ -131,25 +131,25 @@ test('Map minimumOutputLengthAndSize', () => {
   expect(debugtrace.lastLog).toContain("v <= (Map){1:: 'A', 2:: 'B', 3:: 'C'}")
 
   v.set(4, 'D')
-  debugtrace.print('v', v)
+  debugtrace.print('v', v, {size:true})
   expect(debugtrace.lastLog).toContain("v <= (Map _size_:4){1:: 'A', 2:: 'B', 3:: 'C', 4:: 'D'}")
 })
 
-test('Set minimumOutputLengthAndSize', () => {
+test('Set size', () => {
   const v = new Set([1, 2, 3])
   debugtrace.print('v', v)
   expect(debugtrace.lastLog).toContain("v <= (Set)[1, 2, 3]")
 
   v.add(4)
-  debugtrace.print('v', v)
+  debugtrace.print('v', v, {size:true})
   expect(debugtrace.lastLog).toContain("v <= (Set _size_:4)[1, 2, 3, 4]")
 })
 
-test('minimumOutputStringLength', () => {
+test('String length', () => {
   debugtrace.print('v', 'ABCDE')
   expect(debugtrace.lastLog).toContain("v <= 'ABCDE'")
 
-  debugtrace.print('v', 'ABCDEF')
+  debugtrace.print('v', 'ABCDEF', {stringLength:true})
   expect(debugtrace.lastLog).toContain("v <= (_length_:6)'ABCDEF'")
 })
 
@@ -158,6 +158,13 @@ test('reflectionNestLimit', () => {
   v.next = new Node()
   v.next.next = new Node()
   v.next.next.next = new Node()
+  v.next.next.next.next = new Node()
   debugtrace.print('v', v)
   expect(debugtrace.lastLog).toContain("(Node){next:: (Node){next:: <Limit>}}")
+
+  debugtrace.print('v', v, {reflectionNestLimit:3})
+  expect(debugtrace.lastLog).toContain("(Node){next:: (Node){next:: (Node){next:: <Limit>}}}")
+
+  debugtrace.print('v', v, {reflectionNestLimit:4})
+  expect(debugtrace.lastLog).toContain("(Node){next:: (Node){next:: (Node){next:: (Node){next:: <Limit>}}}}")
 })

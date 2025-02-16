@@ -59,23 +59,32 @@ test('print String', () => {
 
   v = 'ABCDE'
   expect(debugtrace.print('v', v) === v)
+  expect(debugtrace.lastLog).toContain("v = 'ABCDE'")
+
+  expect(debugtrace.print('v', v, {stringLength:true}) === v)
   expect(debugtrace.lastLog).toContain("v = (length:5)'ABCDE'")
+
+  expect(debugtrace.print('v', v, {stringLimit:4}) === v)
+  expect(debugtrace.lastLog).toContain("v = 'ABCD...'")
+
+  expect(debugtrace.print('v', v, {stringLength:true, stringLimit:4}) === v)
+  expect(debugtrace.lastLog).toContain("v = (length:5)'ABCD...'")
 
   v = '\0\b\t\n\v\f\'\\'
   expect(debugtrace.print('v', v) === v)
-  expect(debugtrace.lastLog).toContain("v = (length:8)'\\0\\b\\t\\n\\v\\f\\'\\\\'")
+  expect(debugtrace.lastLog).toContain("v = '\\0\\b\\t\\n\\v\\f\\'\\\\'")
 
   v = '\x01\x02\x03\x04\x05\x06\x07\x0E\x0F'
   expect(debugtrace.print('v', v) === v)
-  expect(debugtrace.lastLog).toContain("v = (length:9)'\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x0E\\x0F'")
+  expect(debugtrace.lastLog).toContain("v = '\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x0E\\x0F'")
 
   v = '\x10\x11\x12\x13\x14\x15\x16\x17'
   expect(debugtrace.print('v', v) === v)
-  expect(debugtrace.lastLog).toContain("v = (length:8)'\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17'")
+  expect(debugtrace.lastLog).toContain("v = '\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17'")
 
   v = '\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F\x7F'
   expect(debugtrace.print('v', v) === v)
-  expect(debugtrace.lastLog).toContain("v = (length:9)'\\x18\\x19\\x1A\\x1B\\x1C\\x1D\\x1E\\x1F\\x7F'")
+  expect(debugtrace.lastLog).toContain("v = '\\x18\\x19\\x1A\\x1B\\x1C\\x1D\\x1E\\x1F\\x7F'")
 })
 
 test('print Date', () => {
@@ -106,7 +115,7 @@ test('print Object', () => {
   expect(debugtrace.lastLog).toContain('v = (Point){x: 1, y: 2}')
 
   debugtrace.print('v', new Point('ABCD', 'ABCDE'))
-  expect(debugtrace.lastLog).toContain("v = (Point){x: 'ABCD', y: (length:5)'ABCDE'}")
+  expect(debugtrace.lastLog).toContain("v = (Point){x: 'ABCD', y: 'ABCDE'}")
 
   debugtrace.print('v', [new Point(1, 2), new Point(3, 4)])
   expect(debugtrace.lastLog).toContain('v = [(Point){x: 1, y: 2}, (Point){x: 3, y: 4}]')
@@ -121,13 +130,38 @@ test('print Map', () => {
   v = new Map()
   v.set('a', 'A');  v.set('b', 'B'); v.set('c', 'C'); v.set('d', 'D'); v.set('e', 'E')
   debugtrace.print('v', v)
+  expect(debugtrace.lastLog).toContain("v = (Map){'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E'}")
+
+  debugtrace.print('v', v, {size:true})
   expect(debugtrace.lastLog).toContain("v = (Map size:5){'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', 'e': 'E'}")
+
+  debugtrace.print('v', v, {collectionLimit:4})
+  expect(debugtrace.lastLog).toContain("v = (Map){'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', ...}")
+
+  debugtrace.print('v', v, {size:true, collectionLimit:4})
+  expect(debugtrace.lastLog).toContain("v = (Map size:5){'a': 'A', 'b': 'B', 'c': 'C', 'd': 'D', ...}")
 })
 
 test('print Set', () => {
   debugtrace.print('v', new Set([1, 2, 3, 4]))
   expect(debugtrace.lastLog).toContain("v = (Set)[1, 2, 3, 4]")
 
-  debugtrace.print('v', new Set(['A', 'B', 'C', 'D', 'EEEEE']))
-  expect(debugtrace.lastLog).toContain("v = (Set size:5)['A', 'B', 'C', 'D', (length:5)'EEEEE']")
+  let v =  new Set(['A', 'B', 'C', 'D', 'EEEEE'])
+  debugtrace.print('v', v)
+  expect(debugtrace.lastLog).toContain("v = (Set)['A', 'B', 'C', 'D', 'EEEEE']")
+
+  debugtrace.print('v', v, {stringLength:true})
+  expect(debugtrace.lastLog).toContain("v = (Set)[(length:1)'A', (length:1)'B', (length:1)'C', (length:1)'D', (length:5)'EEEEE']")
+
+  debugtrace.print('v', v, {size:true})
+  expect(debugtrace.lastLog).toContain("v = (Set size:5)['A', 'B', 'C', 'D', 'EEEEE']")
+
+  debugtrace.print('v', v, {stringLength:true, size:true})
+  expect(debugtrace.lastLog).toContain("v = (Set size:5)[(length:1)'A', (length:1)'B', (length:1)'C', (length:1)'D', (length:5)'EEEEE']")
+
+  debugtrace.print('v', v, {collectionLimit:4})
+  expect(debugtrace.lastLog).toContain("v = (Set)['A', 'B', 'C', 'D', ...]")
+
+  debugtrace.print('v', v, {size:true, collectionLimit:4})
+  expect(debugtrace.lastLog).toContain("v = (Set size:5)['A', 'B', 'C', 'D', ...]")
 })
